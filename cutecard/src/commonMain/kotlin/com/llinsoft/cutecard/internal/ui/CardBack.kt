@@ -1,0 +1,101 @@
+package com.llinsoft.cutecard.internal.ui
+
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
+import com.llinsoft.cutecard.api.CuteCardContent
+import com.llinsoft.cutecard.api.CuteCardLabels
+import com.llinsoft.cutecard.api.CuteCardStyle
+import com.llinsoft.cutecard.internal.theme.CuteCardTokens
+
+/**
+ * Back face of [CuteCard] - the "full info" side.
+ *
+ * @param isPlaying         Whether audio is currently playing. Drives audio button state.
+ * @param onAudioRequested  Null hides the audio button entirely.
+ */
+@Composable
+internal fun CardBack(
+    content: CuteCardContent,
+    style: CuteCardStyle,
+    labels: CuteCardLabels,
+    isPlaying: Boolean,
+    onAudioRequested: (() -> Unit)?,
+    modifier: Modifier = Modifier
+) {
+    Column(
+        modifier = modifier
+            .fillMaxSize()
+            .padding(CuteCardTokens.CardContentPadding)
+            .semantics {
+                contentDescription = labels.cardBackContentDescription
+            },
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .weight(1f),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center
+        ) {
+            Text(
+                text = content.translation,
+                style = style.wordTextStyle,
+                color = style.wordTextColor,
+                textAlign = TextAlign.Center,
+                maxLines = 2,
+                overflow = TextOverflow.Ellipsis
+            )
+
+            if (content.phonetics != null) {
+                Text(
+                    text = content.phonetics,
+                    style = style.phoneticsTextStyle,
+                    color = style.phoneticsTextColor,
+                    textAlign = TextAlign.Center,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                    modifier = Modifier.padding(
+                        top = CuteCardTokens.WordToPhoneticsSpacing
+                    )
+                )
+            }
+
+            if (content.wordClass != null) {
+                WordClassPill(
+                    wordClass = content.wordClass,
+                    style = style,
+                    modifier = Modifier.padding(
+                        top = if (content.phonetics != null)
+                            CuteCardTokens.PhoneticsToWordClassSpacing
+                        else
+                            CuteCardTokens.WordToPhoneticsSpacing
+                    )
+                )
+            }
+        }
+
+        if (onAudioRequested != null) {
+            AudioButton(
+                isPlaying = isPlaying,
+                onClick = onAudioRequested,
+                style = style.audioButtonStyle,
+                labels = labels,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(top = CuteCardTokens.ContentToAudioButtonSpacing)
+            )
+        }
+    }
+}
