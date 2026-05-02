@@ -43,11 +43,11 @@ tasks.register("prepareKotlinBuildScriptModel") {
 }
 
 android {
-    namespace = "com.llinsoft.demo"
+    namespace = "site.llinsoft.demo"
     compileSdk = libs.versions.android.compileSdk.get().toInt()
 
     defaultConfig {
-        applicationId = "com.llinsoft.demo"
+        applicationId = "site.llinsoft.demo"
         minSdk = libs.versions.android.minSdk.get().toInt()
         targetSdk = libs.versions.android.targetSdk.get().toInt()
         versionCode = 1
