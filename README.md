@@ -1,6 +1,6 @@
 # CuteCard
 
-[![Version](https://img.shields.io/badge/version-0.2.0-blue)](https://github.com/llin-pixel/CuteCard/releases/tag/v0.2.0)
+[![Version](https://img.shields.io/badge/version-0.2.1-blue)](https://github.com/llin-pixel/CuteCard/releases/tag/v0.2.1)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
 A language-learning flashcard component for **Compose Multiplatform** (Android & iOS).
@@ -23,7 +23,9 @@ CuteCard handles the full interaction lifecycle of a single flashcard - 3D flip 
 
 ## Installation
 
-> **Publishing coming soon.** Maven coordinates will be available on Maven Central once the library is released. Until then, clone the repo and add `:cutecard` as a local module dependency.
+```kotlin
+implementation("site.llinsoft:cutecard:0.2.1")
+```
 
 For the full API reference see [documentation/CuteCard_Documentation.md](documentation/CuteCard_Documentation.md).
 
