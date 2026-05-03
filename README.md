@@ -1,6 +1,6 @@
 # CuteCard
 
-[![Version](https://img.shields.io/badge/version-0.1.0-blue)](https://github.com/llin-pixel/CuteCard/releases/tag/v0.1.0)
+[![Version](https://img.shields.io/badge/version-0.2.0-blue)](https://github.com/llin-pixel/CuteCard/releases/tag/v0.2.0)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
 A language-learning flashcard component for **Compose Multiplatform** (Android & iOS).

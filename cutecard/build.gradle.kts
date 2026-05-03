@@ -1,7 +1,7 @@
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
-group = "com.llinsoft.cutecard"
-version = "0.1.0"
+group = "site.llinsoft"
+version = "0.2.0"
 
 plugins {
     alias(libs.plugins.kotlinMultiplatform)
@@ -45,7 +45,7 @@ tasks.register("prepareKotlinBuildScriptModel") {
 }
 
 android {
-    namespace = "com.llinsoft.cutecard"
+    namespace = "site.llinsoft.cutecard"
     compileSdk = libs.versions.android.compileSdk.get().toInt()
 
     defaultConfig {
