@@ -25,6 +25,8 @@ CuteCard handles the full interaction lifecycle of a single flashcard - 3D flip 
 
 > **Publishing coming soon.** Maven coordinates will be available on Maven Central once the library is released. Until then, clone the repo and add `:cutecard` as a local module dependency.
 
+For the full API reference see [documentation/CuteCard_Documentation.md](documentation/CuteCard_Documentation.md).
+
 ---
 
 ## Quick start
