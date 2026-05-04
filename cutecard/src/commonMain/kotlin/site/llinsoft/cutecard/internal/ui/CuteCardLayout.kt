@@ -22,11 +22,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.unit.dp
-import site.llinsoft.cutecard.api.CardFrontSide
-import site.llinsoft.cutecard.api.CuteCardConfig
-import site.llinsoft.cutecard.api.CuteCardContent
-import site.llinsoft.cutecard.api.CuteCardLabels
-import site.llinsoft.cutecard.api.CuteCardStyle
+import site.llinsoft.cutecard.CardFrontSide
+import site.llinsoft.cutecard.CuteCardConfig
+import site.llinsoft.cutecard.CuteCardContent
+import site.llinsoft.cutecard.CuteCardLabels
+import site.llinsoft.cutecard.CuteCardStyle
 import site.llinsoft.cutecard.internal.animation.exitModifier
 import site.llinsoft.cutecard.internal.animation.rememberFlipTransition
 import site.llinsoft.cutecard.internal.state.CuteCardState

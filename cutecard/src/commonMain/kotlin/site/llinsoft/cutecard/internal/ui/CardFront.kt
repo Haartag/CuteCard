@@ -17,9 +17,9 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.ui.unit.dp
-import site.llinsoft.cutecard.api.CuteCardContent
-import site.llinsoft.cutecard.api.CuteCardLabels
-import site.llinsoft.cutecard.api.CuteCardStyle
+import site.llinsoft.cutecard.CuteCardContent
+import site.llinsoft.cutecard.CuteCardLabels
+import site.llinsoft.cutecard.CuteCardStyle
 import site.llinsoft.cutecard.internal.theme.CuteCardTokens
 
 /** Front face of [CuteCard] - always renders the word only. */

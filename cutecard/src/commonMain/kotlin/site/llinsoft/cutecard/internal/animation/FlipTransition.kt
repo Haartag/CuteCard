@@ -11,8 +11,8 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.GraphicsLayerScope
 import androidx.compose.ui.graphics.graphicsLayer
-import site.llinsoft.cutecard.api.CuteCardConfig
-import site.llinsoft.cutecard.api.FlipDirection
+import site.llinsoft.cutecard.CuteCardConfig
+import site.llinsoft.cutecard.FlipDirection
 import site.llinsoft.cutecard.internal.state.CuteCardState
 import site.llinsoft.cutecard.internal.state.isBackVisible
 

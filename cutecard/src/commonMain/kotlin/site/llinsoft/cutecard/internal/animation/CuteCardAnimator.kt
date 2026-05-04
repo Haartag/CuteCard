@@ -7,8 +7,8 @@ import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.LinearOutSlowInEasing
 import androidx.compose.animation.core.keyframes
 import androidx.compose.animation.core.tween
-import site.llinsoft.cutecard.api.CuteCardConfig
-import site.llinsoft.cutecard.api.ExitAnimation
+import site.llinsoft.cutecard.CuteCardConfig
+import site.llinsoft.cutecard.ExitAnimation
 
 /**
  * Translates [CuteCardConfig] timing values into Compose [AnimationSpec] instances.

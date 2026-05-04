@@ -13,9 +13,9 @@ import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
-import site.llinsoft.cutecard.api.CuteCardContent
-import site.llinsoft.cutecard.api.CuteCardLabels
-import site.llinsoft.cutecard.api.CuteCardStyle
+import site.llinsoft.cutecard.CuteCardContent
+import site.llinsoft.cutecard.CuteCardLabels
+import site.llinsoft.cutecard.CuteCardStyle
 import site.llinsoft.cutecard.internal.theme.CuteCardTokens
 
 /**

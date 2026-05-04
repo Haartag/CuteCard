@@ -1,6 +1,6 @@
 package site.llinsoft.cutecard
 
-import site.llinsoft.cutecard.api.CuteCardConfig
+import site.llinsoft.cutecard.CuteCardConfig
 import site.llinsoft.cutecard.internal.state.CuteCardState
 import site.llinsoft.cutecard.internal.state.CuteCardStateHolder
 import site.llinsoft.cutecard.internal.state.isBackVisible

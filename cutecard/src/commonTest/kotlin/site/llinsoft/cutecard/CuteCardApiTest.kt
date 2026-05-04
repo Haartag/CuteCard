@@ -1,11 +1,11 @@
 package site.llinsoft.cutecard
 
-import site.llinsoft.cutecard.api.CardFrontSide
-import site.llinsoft.cutecard.api.ExitAnimation
-import site.llinsoft.cutecard.api.CuteCardConfig
-import site.llinsoft.cutecard.api.CuteCardContent
-import site.llinsoft.cutecard.api.CuteCardLabels
-import site.llinsoft.cutecard.api.FlipDirection
+import site.llinsoft.cutecard.CardFrontSide
+import site.llinsoft.cutecard.ExitAnimation
+import site.llinsoft.cutecard.CuteCardConfig
+import site.llinsoft.cutecard.CuteCardContent
+import site.llinsoft.cutecard.CuteCardLabels
+import site.llinsoft.cutecard.FlipDirection
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNull
