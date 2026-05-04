@@ -4,7 +4,7 @@ import com.vanniktech.maven.publish.JavadocJar
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
 group = "site.llinsoft"
-version = "0.2.1"
+version = "0.2.2"
 
 plugins {
     alias(libs.plugins.kotlinMultiplatform)
@@ -24,7 +24,8 @@ kotlin {
 
     listOf(
         iosArm64(),
-        iosSimulatorArm64()
+        iosSimulatorArm64(),
+        iosX64()
     ).forEach { iosTarget ->
         iosTarget.binaries.framework {
             baseName = "CuteCard"
@@ -75,7 +76,7 @@ mavenPublishing {
     publishToMavenCentral(SonatypeHost.CENTRAL_PORTAL)
     signAllPublications()
 
-    coordinates("site.llinsoft", "cutecard", "0.2.1")
+    coordinates("site.llinsoft", "cutecard", "0.2.2")
 
     configure(
         KotlinMultiplatform(
