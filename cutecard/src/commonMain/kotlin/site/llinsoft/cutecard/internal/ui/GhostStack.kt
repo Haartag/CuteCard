@@ -17,7 +17,7 @@ import androidx.compose.ui.graphics.shadow.Shadow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.dp
-import site.llinsoft.cutecard.api.CuteCardStyle
+import site.llinsoft.cutecard.CuteCardStyle
 import site.llinsoft.cutecard.internal.theme.CuteCardTokens
 
 /**

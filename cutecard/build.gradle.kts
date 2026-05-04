@@ -4,7 +4,7 @@ import com.vanniktech.maven.publish.JavadocJar
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
 group = "site.llinsoft"
-version = "0.2.2"
+version = "0.2.4"
 
 plugins {
     alias(libs.plugins.kotlinMultiplatform)
@@ -76,7 +76,7 @@ mavenPublishing {
     publishToMavenCentral(SonatypeHost.CENTRAL_PORTAL)
     signAllPublications()
 
-    coordinates("site.llinsoft", "cutecard", "0.2.2")
+    coordinates("site.llinsoft", "cutecard", "0.2.4")
 
     configure(
         KotlinMultiplatform(

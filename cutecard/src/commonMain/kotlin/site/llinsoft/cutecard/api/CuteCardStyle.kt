@@ -1,4 +1,4 @@
-package site.llinsoft.cutecard.api
+package site.llinsoft.cutecard
 
 import androidx.compose.runtime.Immutable
 import androidx.compose.ui.graphics.Color

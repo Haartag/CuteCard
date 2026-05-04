@@ -17,8 +17,8 @@ import androidx.compose.ui.semantics.role
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import site.llinsoft.cutecard.api.DismissButtonStyle
-import site.llinsoft.cutecard.api.CuteCardLabels
+import site.llinsoft.cutecard.DismissButtonStyle
+import site.llinsoft.cutecard.CuteCardLabels
 import site.llinsoft.cutecard.internal.theme.CuteCardTokens
 
 /**

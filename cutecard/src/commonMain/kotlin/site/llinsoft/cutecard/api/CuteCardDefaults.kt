@@ -1,4 +1,4 @@
-package site.llinsoft.cutecard.api
+package site.llinsoft.cutecard
 
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable

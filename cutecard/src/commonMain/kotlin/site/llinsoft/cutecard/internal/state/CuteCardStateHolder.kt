@@ -4,7 +4,7 @@ import androidx.compose.runtime.Stable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
-import site.llinsoft.cutecard.api.CuteCardConfig
+import site.llinsoft.cutecard.CuteCardConfig
 
 /**
  * Drives the [CuteCardState] machine for a single [CuteCard] instance.

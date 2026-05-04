@@ -7,8 +7,8 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.graphicsLayer
-import site.llinsoft.cutecard.api.ExitAnimation
-import site.llinsoft.cutecard.api.CuteCardConfig
+import site.llinsoft.cutecard.ExitAnimation
+import site.llinsoft.cutecard.CuteCardConfig
 import site.llinsoft.cutecard.internal.state.CuteCardState
 
 /**
