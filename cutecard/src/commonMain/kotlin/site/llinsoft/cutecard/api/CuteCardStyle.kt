@@ -69,13 +69,18 @@ data class WordClassPillStyle(
 /**
  * Visual appearance of the language indicator pill shown in the top-left corner of each card face.
  *
+ * Front and back faces share [textColor] and [containerColor] by default.
+ * Supply [backTextColor] or [backContainerColor] to override colors on the back face only.
+ *
  * @param textStyle Typography of the pill label. Should be small, bold, and uppercase.
- * @param textColor Color of the pill label text.
- * @param containerColor Background fill of the pill.
+ * @param textColor Color of the pill label text on the front face.
+ * @param containerColor Background fill of the pill on the front face.
  * @param shape Shape of the pill. Defaults to fully rounded in [CuteCardDefaults].
  * @param paddingHorizontal Horizontal padding inside the pill (between text and pill edge).
  * @param paddingVertical Vertical padding inside the pill (between text and pill edge).
  * @param cornerPadding Distance from the card corner to the pill edge.
+ * @param backTextColor Text color override for the back face. Falls back to [textColor] when null.
+ * @param backContainerColor Background color override for the back face. Falls back to [containerColor] when null.
  */
 @Immutable
 data class LanguagePillStyle(
@@ -85,7 +90,9 @@ data class LanguagePillStyle(
     val shape: Shape,
     val paddingHorizontal: Dp,
     val paddingVertical: Dp,
-    val cornerPadding: Dp
+    val cornerPadding: Dp,
+    val backTextColor: Color? = null,
+    val backContainerColor: Color? = null
 )
 
 /**

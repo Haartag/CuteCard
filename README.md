@@ -1,6 +1,6 @@
 # CuteCard
 
-[![Version](https://img.shields.io/badge/version-0.2.5-blue)](https://github.com/llin-pixel/CuteCard/releases/tag/v0.2.5)
+[![Version](https://img.shields.io/badge/version-0.2.6-blue)](https://github.com/llin-pixel/CuteCard/releases/tag/v0.2.6)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
 A language-learning flashcard component for **Compose Multiplatform** (Android & iOS).
@@ -25,7 +25,7 @@ CuteCard handles the full interaction lifecycle of a single flashcard - 3D flip 
 ## Installation
 
 ```kotlin
-implementation("site.llinsoft:cutecard:0.2.5")
+implementation("site.llinsoft:cutecard:0.2.6")
 ```
 
 For the full API reference see [documentation/CuteCard_Documentation.md](documentation/CuteCard_Documentation.md).
@@ -165,7 +165,22 @@ style = CuteCardDefaults.darkStyle()
 | `wordClassPillStyle` | Word class chip — text, colors, shape |
 | `audioButtonStyle` | Audio button — icon colors, stroke widths, shape, typography |
 | `dismissButtonStyle` | Dismiss button — text color, typography, shape |
-| `languagePillStyle` | Language indicator pill — text style, text color, background color, shape, internal padding, corner offset |
+| `languagePillStyle` | Language indicator pill — text style, colors, shape, padding, corner offset. `backTextColor` / `backContainerColor` override colors on the back face independently |
+
+### Per-side language pill colors
+
+The front and back faces can have different pill colors. Set `backTextColor` and/or `backContainerColor` on `languagePillStyle` — they fall back to the base colors when not set.
+
+```kotlin
+style = CuteCardDefaults.style().copy(
+    languagePillStyle = CuteCardDefaults.style().languagePillStyle.copy(
+        containerColor = Color(0xFFDCE3EE),   // front face pill background
+        textColor = Color(0xFF1F3A5F),         // front face pill text
+        backContainerColor = Color(0xFF2E4A3E), // back face pill background
+        backTextColor = Color(0xFFAADDC4)       // back face pill text
+    )
+)
+```
 
 ---
 

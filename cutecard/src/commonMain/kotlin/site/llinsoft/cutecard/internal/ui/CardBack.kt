@@ -102,9 +102,16 @@ internal fun CardBack(
         }
 
         if (content.targetLanguage != null) {
+            val backPillStyle = style.languagePillStyle.let { s ->
+                if (s.backTextColor == null && s.backContainerColor == null) s
+                else s.copy(
+                    textColor = s.backTextColor ?: s.textColor,
+                    containerColor = s.backContainerColor ?: s.containerColor
+                )
+            }
             LanguagePill(
                 language = content.targetLanguage,
-                style = style,
+                style = backPillStyle,
                 modifier = Modifier
                     .align(Alignment.TopStart)
                     .padding(style.languagePillStyle.cornerPadding)
