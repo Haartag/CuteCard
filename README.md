@@ -1,6 +1,6 @@
 # CuteCard
 
-[![Version](https://img.shields.io/badge/version-0.2.4-blue)](https://github.com/llin-pixel/CuteCard/releases/tag/v0.2.4)
+[![Version](https://img.shields.io/badge/version-0.2.5-blue)](https://github.com/llin-pixel/CuteCard/releases/tag/v0.2.5)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
 A language-learning flashcard component for **Compose Multiplatform** (Android & iOS).
@@ -16,6 +16,7 @@ CuteCard handles the full interaction lifecycle of a single flashcard - 3D flip 
 - Two exercise modes — see the word, recall the translation, or vice versa
 - Ghost card stack for a physical deck feel
 - Audio button with idle/playing visual states
+- Language indicator pill — small 2-3 character code (e.g. "EN", "ES") in the card corner
 - Fully customizable: colors, shapes, typography, labels, timing
 - Built-in dark mode style
 
@@ -24,7 +25,7 @@ CuteCard handles the full interaction lifecycle of a single flashcard - 3D flip 
 ## Installation
 
 ```kotlin
-implementation("site.llinsoft:cutecard:0.2.4")
+implementation("site.llinsoft:cutecard:0.2.5")
 ```
 
 For the full API reference see [documentation/CuteCard_Documentation.md](documentation/CuteCard_Documentation.md).
@@ -62,7 +63,9 @@ CuteCardContent(
     translation = "to run",    // required — the translation
     phonetics = "[ko.ˈrer]",  // optional — hides phonetics row when null
     wordClass = "verb",        // optional — hides word class pill when null
-    audioUrl = "https://..."   // optional — hides audio button when null
+    audioUrl = "https://...",  // optional — hides audio button when null
+    sourceLanguage = "ES",     // optional — language code shown on the word face (null = hidden)
+    targetLanguage = "EN"      // optional — language code shown on the translation face (null = hidden)
 )
 ```
 
@@ -162,6 +165,7 @@ style = CuteCardDefaults.darkStyle()
 | `wordClassPillStyle` | Word class chip — text, colors, shape |
 | `audioButtonStyle` | Audio button — icon colors, stroke widths, shape, typography |
 | `dismissButtonStyle` | Dismiss button — text color, typography, shape |
+| `languagePillStyle` | Language indicator pill — text style, text color, background color, shape, internal padding, corner offset |
 
 ---
 

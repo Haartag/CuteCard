@@ -107,6 +107,22 @@ object CuteCardDefaults {
                 fontWeight = FontWeight.Normal
             ),
             shape = RoundedCornerShape(50)
+        ),
+
+        // Language pill
+
+        languagePillStyle = LanguagePillStyle(
+            textStyle = TextStyle(
+                fontSize = CuteCardTokens.LanguagePillTextSize,
+                fontWeight = FontWeight.ExtraBold,
+                letterSpacing = CuteCardTokens.LanguagePillTextSize * 0.1f
+            ),
+            textColor = Color(0xFF888888),
+            containerColor = Color(0x0F000000),
+            shape = RoundedCornerShape(CuteCardTokens.WordClassPillCornerRadius),
+            paddingHorizontal = CuteCardTokens.LanguagePillPaddingHorizontal,
+            paddingVertical = CuteCardTokens.LanguagePillPaddingVertical,
+            cornerPadding = CuteCardTokens.LanguagePillPadding
         )
     )
 
@@ -135,6 +151,9 @@ object CuteCardDefaults {
             ),
             dismissButtonStyle = base.dismissButtonStyle.copy(
                 contentColor = Color(0xFF666666)
+            ),
+            languagePillStyle = base.languagePillStyle.copy(
+                containerColor = Color(0x0FFFFFFF)
             )
         )
     }

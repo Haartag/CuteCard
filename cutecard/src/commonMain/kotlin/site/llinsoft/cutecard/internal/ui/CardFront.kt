@@ -30,23 +30,63 @@ internal fun CardFront(
     labels: CuteCardLabels,
     modifier: Modifier = Modifier
 ) {
-    Column(
+    Box(modifier = modifier.fillMaxSize()) {
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(CuteCardTokens.CardContentPadding)
+                .semantics {
+                    contentDescription = labels.cardFrontContentDescription
+                },
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center
+        ) {
+            Text(
+                text = content.word,
+                style = style.wordTextStyle,
+                color = style.wordTextColor,
+                textAlign = TextAlign.Center,
+                maxLines = 2,
+                overflow = TextOverflow.Ellipsis
+            )
+        }
+
+        if (content.sourceLanguage != null) {
+            LanguagePill(
+                language = content.sourceLanguage,
+                style = style,
+                modifier = Modifier
+                    .align(Alignment.TopStart)
+                    .padding(style.languagePillStyle.cornerPadding)
+            )
+        }
+    }
+}
+
+/** Small pill showing a 2–3 character language code e.g. "EN", "RU" in the card corner. */
+@Composable
+internal fun LanguagePill(
+    language: String,
+    style: CuteCardStyle,
+    modifier: Modifier = Modifier
+) {
+    val pillStyle = style.languagePillStyle
+
+    Box(
+        contentAlignment = Alignment.Center,
         modifier = modifier
-            .fillMaxSize()
-            .padding(CuteCardTokens.CardContentPadding)
-            .semantics {
-                contentDescription = labels.cardFrontContentDescription
-            },
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center
+            .clip(pillStyle.shape)
+            .background(pillStyle.containerColor)
+            .padding(
+                horizontal = pillStyle.paddingHorizontal,
+                vertical = pillStyle.paddingVertical
+            )
     ) {
         Text(
-            text = content.word,
-            style = style.wordTextStyle,
-            color = style.wordTextColor,
-            textAlign = TextAlign.Center,
-            maxLines = 2,
-            overflow = TextOverflow.Ellipsis
+            text = language.uppercase(),
+            style = pillStyle.textStyle,
+            color = pillStyle.textColor,
+            maxLines = 1
         )
     }
 }

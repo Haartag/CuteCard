@@ -67,6 +67,28 @@ data class WordClassPillStyle(
 )
 
 /**
+ * Visual appearance of the language indicator pill shown in the top-left corner of each card face.
+ *
+ * @param textStyle Typography of the pill label. Should be small, bold, and uppercase.
+ * @param textColor Color of the pill label text.
+ * @param containerColor Background fill of the pill.
+ * @param shape Shape of the pill. Defaults to fully rounded in [CuteCardDefaults].
+ * @param paddingHorizontal Horizontal padding inside the pill (between text and pill edge).
+ * @param paddingVertical Vertical padding inside the pill (between text and pill edge).
+ * @param cornerPadding Distance from the card corner to the pill edge.
+ */
+@Immutable
+data class LanguagePillStyle(
+    val textStyle: TextStyle,
+    val textColor: Color,
+    val containerColor: Color,
+    val shape: Shape,
+    val paddingHorizontal: Dp,
+    val paddingVertical: Dp,
+    val cornerPadding: Dp
+)
+
+/**
  * Full visual appearance of [CuteCard].
  * All animation and behavior is controlled separately via [CuteCardConfig].
  *
@@ -86,6 +108,7 @@ data class WordClassPillStyle(
  * @param wordClassPillStyle Full appearance of the word class pill.
  * @param audioButtonStyle Full appearance of the audio button.
  * @param dismissButtonStyle Full appearance of the dismiss button.
+ * @param languagePillStyle Full appearance of the language indicator pill in the card corner.
  */
 @Immutable
 data class CuteCardStyle(
@@ -101,5 +124,6 @@ data class CuteCardStyle(
     val phoneticsTextColor: Color,
     val wordClassPillStyle: WordClassPillStyle,
     val audioButtonStyle: AudioButtonStyle,
-    val dismissButtonStyle: DismissButtonStyle
+    val dismissButtonStyle: DismissButtonStyle,
+    val languagePillStyle: LanguagePillStyle
 )
