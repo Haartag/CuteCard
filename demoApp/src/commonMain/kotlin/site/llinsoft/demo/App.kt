@@ -26,8 +26,8 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import site.llinsoft.cutecard.api.CuteCard
-import site.llinsoft.cutecard.api.CuteCardContent
+import site.llinsoft.cutecard.CuteCard
+import site.llinsoft.cutecard.CuteCardContent
 
 @Composable
 fun App() {

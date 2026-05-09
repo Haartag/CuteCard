@@ -192,9 +192,11 @@ One instance per card. Build from any data source — database, API, hardcoded l
 data class CuteCardContent(
     val word: String,
     val translation: String,
-    val phonetics: String? = null,   // null = hidden
-    val wordClass: String? = null,   // null = hidden
-    val audioUrl: String? = null     // null = audio button hidden
+    val phonetics: String? = null,        // null = hidden
+    val wordClass: String? = null,        // null = hidden
+    val audioUrl: String? = null,         // null = audio button hidden
+    val sourceLanguage: String? = null,   // null = hidden
+    val targetLanguage: String? = null    // null = hidden
 )
 ```
 
@@ -205,6 +207,8 @@ data class CuteCardContent(
 | `phonetics` | No | e.g. `"[ˈje.ro]"`. Hidden when null — no empty space left behind |
 | `wordClass` | No | e.g. `"noun"`, `"verb"`. Displayed in a small pill chip |
 | `audioUrl` | No | The lib never reads this directly — it's your data to use in `onAudioRequested` |
+| `sourceLanguage` | No | Short language code for the word, e.g. `"EN"`. Shown as a small pill in the top-left corner of the word face. Hidden when null |
+| `targetLanguage` | No | Short language code for the translation, e.g. `"ES"`. Shown in the top-left corner of the translation face. Hidden when null |
 
 ---
 
@@ -254,7 +258,8 @@ data class CuteCardStyle(
     val phoneticsTextColor: Color,
     val wordClassPillStyle: WordClassPillStyle,
     val audioButtonStyle: AudioButtonStyle,
-    val dismissButtonStyle: DismissButtonStyle
+    val dismissButtonStyle: DismissButtonStyle,
+    val languagePillStyle: LanguagePillStyle
 )
 ```
 
@@ -295,6 +300,36 @@ data class WordClassPillStyle(
     val containerColor: Color,
     val borderColor: Color,
     val shape: Shape
+)
+```
+
+#### `LanguagePillStyle`
+
+Controls the small language indicator pill shown in the top-left corner of each card face.
+
+```kotlin
+data class LanguagePillStyle(
+    val textStyle: TextStyle,      // font size, weight, letter spacing — default 10sp ExtraBold
+    val textColor: Color,          // text / label color
+    val containerColor: Color,     // pill background fill
+    val shape: Shape,              // pill corner shape — default fully rounded
+    val paddingHorizontal: Dp,     // space between text and left/right pill edge — default 9.dp
+    val paddingVertical: Dp,       // space between text and top/bottom pill edge — default 3.dp
+    val cornerPadding: Dp          // distance from the card corner to the pill — default 14.dp
+)
+```
+
+Customise via `copy()`:
+
+```kotlin
+style = CuteCardDefaults.style().copy(
+    languagePillStyle = CuteCardDefaults.style().languagePillStyle.copy(
+        containerColor = Color(0xFFDCE3EE),
+        textColor = Color(0xFF1F3A5F),
+        paddingHorizontal = 12.dp,
+        paddingVertical = 4.dp,
+        cornerPadding = 10.dp
+    )
 )
 ```
 

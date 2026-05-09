@@ -67,6 +67,9 @@ internal object CuteCardTokens {
     /** Font size of the word class pill label. */
     val WordClassTextSize = 11.sp
 
+    /** Font size of the language indicator pill label. */
+    val LanguagePillTextSize = 10.sp
+
     // Word class pill
 
     /** Horizontal padding inside the word class pill. */
@@ -122,5 +125,16 @@ internal object CuteCardTokens {
 
     /** Gap between the main text block and the audio button on the back face. */
     val ContentToAudioButtonSpacing = 16.dp
+
+    // Language pill
+
+    /** Padding from the card corner to the language indicator pill. */
+    val LanguagePillPadding = 14.dp
+
+    /** Horizontal padding inside the language indicator pill. */
+    val LanguagePillPaddingHorizontal = 9.dp
+
+    /** Vertical padding inside the language indicator pill. */
+    val LanguagePillPaddingVertical = 3.dp
 
 }
