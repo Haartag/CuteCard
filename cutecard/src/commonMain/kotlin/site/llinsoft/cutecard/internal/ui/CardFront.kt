@@ -20,6 +20,7 @@ import androidx.compose.ui.unit.dp
 import site.llinsoft.cutecard.CuteCardContent
 import site.llinsoft.cutecard.CuteCardLabels
 import site.llinsoft.cutecard.CuteCardStyle
+import site.llinsoft.cutecard.LanguagePillStyle
 import site.llinsoft.cutecard.internal.theme.CuteCardTokens
 
 /** Front face of [CuteCard] - always renders the word only. */
@@ -54,7 +55,7 @@ internal fun CardFront(
         if (content.sourceLanguage != null) {
             LanguagePill(
                 language = content.sourceLanguage,
-                style = style,
+                style = style.languagePillStyle,
                 modifier = Modifier
                     .align(Alignment.TopStart)
                     .padding(style.languagePillStyle.cornerPadding)
@@ -67,25 +68,23 @@ internal fun CardFront(
 @Composable
 internal fun LanguagePill(
     language: String,
-    style: CuteCardStyle,
+    style: LanguagePillStyle,
     modifier: Modifier = Modifier
 ) {
-    val pillStyle = style.languagePillStyle
-
     Box(
         contentAlignment = Alignment.Center,
         modifier = modifier
-            .clip(pillStyle.shape)
-            .background(pillStyle.containerColor)
+            .clip(style.shape)
+            .background(style.containerColor)
             .padding(
-                horizontal = pillStyle.paddingHorizontal,
-                vertical = pillStyle.paddingVertical
+                horizontal = style.paddingHorizontal,
+                vertical = style.paddingVertical
             )
     ) {
         Text(
             text = language.uppercase(),
-            style = pillStyle.textStyle,
-            color = pillStyle.textColor,
+            style = style.textStyle,
+            color = style.textColor,
             maxLines = 1
         )
     }

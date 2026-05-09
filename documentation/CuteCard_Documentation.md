@@ -307,19 +307,23 @@ data class WordClassPillStyle(
 
 Controls the small language indicator pill shown in the top-left corner of each card face.
 
+The front face uses `textColor` and `containerColor`. The back face uses `backTextColor` / `backContainerColor` when set, and falls back to the base colors when they are `null`.
+
 ```kotlin
 data class LanguagePillStyle(
-    val textStyle: TextStyle,      // font size, weight, letter spacing — default 10sp ExtraBold
-    val textColor: Color,          // text / label color
-    val containerColor: Color,     // pill background fill
-    val shape: Shape,              // pill corner shape — default fully rounded
-    val paddingHorizontal: Dp,     // space between text and left/right pill edge — default 9.dp
-    val paddingVertical: Dp,       // space between text and top/bottom pill edge — default 3.dp
-    val cornerPadding: Dp          // distance from the card corner to the pill — default 14.dp
+    val textStyle: TextStyle,              // font size, weight, letter spacing — default 10sp ExtraBold
+    val textColor: Color,                  // pill text color on the front face
+    val containerColor: Color,             // pill background on the front face
+    val shape: Shape,                      // pill corner shape — default fully rounded
+    val paddingHorizontal: Dp,             // space between text and left/right pill edge — default 9.dp
+    val paddingVertical: Dp,               // space between text and top/bottom pill edge — default 3.dp
+    val cornerPadding: Dp,                 // distance from the card corner to the pill — default 14.dp
+    val backTextColor: Color? = null,      // text color override for the back face (null = same as front)
+    val backContainerColor: Color? = null  // background override for the back face (null = same as front)
 )
 ```
 
-Customise via `copy()`:
+Customise via `copy()`. To apply the same look to both faces, set only the base fields:
 
 ```kotlin
 style = CuteCardDefaults.style().copy(
@@ -329,6 +333,19 @@ style = CuteCardDefaults.style().copy(
         paddingHorizontal = 12.dp,
         paddingVertical = 4.dp,
         cornerPadding = 10.dp
+    )
+)
+```
+
+To use different colors on the back face:
+
+```kotlin
+style = CuteCardDefaults.style().copy(
+    languagePillStyle = CuteCardDefaults.style().languagePillStyle.copy(
+        containerColor = Color(0xFFDCE3EE),   // front face
+        textColor = Color(0xFF1F3A5F),
+        backContainerColor = Color(0xFF2E4A3E), // back face
+        backTextColor = Color(0xFFAADDC4)
     )
 )
 ```
