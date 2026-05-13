@@ -165,6 +165,8 @@ fun CuteCard(
     labels: CuteCardLabels = CuteCardLabels(),
     isPlaying: Boolean = false,
     onAudioRequested: (() -> Unit)? = null,
+    onFlipped: (() -> Unit)? = null,
+    onFlippedBack: (() -> Unit)? = null,
     dismissButton: @Composable (onClick: () -> Unit) -> Unit = { /* built-in text button */ }
 )
 ```
@@ -180,6 +182,8 @@ fun CuteCard(
 | `labels` | `CuteCardLabels` | All user-facing strings |
 | `isPlaying` | `Boolean` | Drives audio button visual state. Owned by the consumer |
 | `onAudioRequested` | `(() -> Unit)?` | Called on audio button tap. `null` hides the button entirely |
+| `onFlipped` | `(() -> Unit)?` | Called when the back face becomes interactive (flip animation done + settle lock expired). `null` = no callback |
+| `onFlippedBack` | `(() -> Unit)?` | Called when the user taps the back face to confirm (before exit animation). `null` = no callback |
 | `dismissButton` | `@Composable (onClick: () -> Unit) -> Unit` | Slot for a custom dismiss control. The `onClick` lambda **must be called** to trigger the dismiss animation. Defaults to the built-in text button |
 
 ---
@@ -523,6 +527,51 @@ CuteCard(
     )
 )
 ```
+
+---
+
+## Flip callbacks
+
+Two optional callbacks let you react to flip events without managing card state yourself.
+
+### `onFlipped` — back face revealed
+
+Fires when the back face becomes fully interactive: flip animation is done and the settle lock has expired. This is the earliest moment the user can tap the back to confirm.
+
+Common uses: auto-play audio on reveal, start a timer, log an analytics event.
+
+```kotlin
+CuteCard(
+    content = content,
+    onKnown = { viewModel.markKnown() },
+    onUnknown = { viewModel.markUnknown() },
+    onFlipped = { viewModel.playAudio(content.audioUrl) }
+)
+```
+
+### `onFlippedBack` — user confirmed on back
+
+Fires when the user taps the back face to mark the card as known, before the exit animation begins. This is earlier in the lifecycle than `onKnown` (which fires after the animation completes).
+
+Common uses: immediate UI reaction, updating a progress indicator before the card disappears.
+
+```kotlin
+CuteCard(
+    content = content,
+    onKnown = { viewModel.markKnown() },
+    onUnknown = { viewModel.markUnknown() },
+    onFlippedBack = { viewModel.onConfirmTapped() }
+)
+```
+
+### Timing summary
+
+| Callback | When it fires |
+|---|---|
+| `onFlipped` | Flip animation ends + settle lock (`settledLockDurationMs`) expires |
+| `onFlippedBack` | User taps back face — before exit animation |
+| `onKnown` | After confirm exit animation completes |
+| `onUnknown` | After dismiss exit animation completes |
 
 ---
 

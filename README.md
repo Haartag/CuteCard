@@ -1,6 +1,6 @@
 # CuteCard
 
-[![Version](https://img.shields.io/badge/version-0.2.6-blue)](https://github.com/llin-pixel/CuteCard/releases/tag/v0.2.6)
+[![Version](https://img.shields.io/badge/version-0.2.7-blue)](https://github.com/llin-pixel/CuteCard/releases/tag/v0.2.7)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
 A language-learning flashcard component for **Compose Multiplatform** (Android & iOS).
@@ -25,7 +25,7 @@ CuteCard handles the full interaction lifecycle of a single flashcard - 3D flip 
 ## Installation
 
 ```kotlin
-implementation("site.llinsoft:cutecard:0.2.6")
+implementation("site.llinsoft:cutecard:0.2.7")
 ```
 
 For the full API reference see [documentation/CuteCard_Documentation.md](documentation/CuteCard_Documentation.md).
@@ -235,6 +235,28 @@ CuteCard(
 ```
 
 When `isPlaying` is true the button switches to an accent color and thicker stroke. When `onAudioRequested` is `null`, the button is hidden entirely with no empty space left behind.
+
+---
+
+## Flip callbacks
+
+Two optional callbacks let you react to flip events without polling state.
+
+`onFlipped` — fires when the back face becomes interactive (flip animation done + settle lock expired). Use it to auto-play audio or log analytics.
+
+`onFlippedBack` — fires when the user taps the back face to confirm the card as known, before the exit animation starts. Useful for immediate UI reactions.
+
+```kotlin
+CuteCard(
+    content = content,
+    onKnown = { /* advance deck */ },
+    onUnknown = { /* re-queue */ },
+    onFlipped = { player.play(content.audioUrl) },   // auto-play on reveal
+    onFlippedBack = { viewModel.onConfirmTapped() }  // react before exit
+)
+```
+
+Both default to `null` (no callback).
 
 ---
 

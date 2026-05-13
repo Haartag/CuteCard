@@ -41,6 +41,8 @@ import kotlinx.coroutines.delay
  * and face routing based on [CuteCardConfig.frontSide].
  *
  * @param onAudioRequested  Null hides the audio button.
+ * @param onFlipped         Called when the back face becomes interactive (flip + settle done).
+ * @param onFlippedBack     Called when the user taps the back face to confirm (before exit starts).
  * @param onKnown           Called after confirm exit animation completes.
  * @param onUnknown         Called after dismiss exit animation completes.
  * @param dismissButton     Slot shown below the card on the back face; must call its onClick to trigger exit.
@@ -54,6 +56,8 @@ internal fun CuteCardLayout(
     labels: CuteCardLabels,
     isPlaying: Boolean,
     onAudioRequested: (() -> Unit)?,
+    onFlipped: (() -> Unit)?,
+    onFlippedBack: (() -> Unit)?,
     onKnown: () -> Unit,
     onUnknown: () -> Unit,
     dismissButton: @Composable (onClick: () -> Unit) -> Unit,
@@ -67,6 +71,16 @@ internal fun CuteCardLayout(
         if (stateHolder.shouldRunSettleTimer) {
             delay(config.settledLockDurationMs.toLong())
             stateHolder.onSettled()
+        }
+    }
+
+    // ── Flip callbacks ───────────────────────────────────────────────────────
+
+    LaunchedEffect(state) {
+        when (state) {
+            CuteCardState.Back           -> onFlipped?.invoke()
+            CuteCardState.ExitingConfirm -> onFlippedBack?.invoke()
+            else                          -> {}
         }
     }
 

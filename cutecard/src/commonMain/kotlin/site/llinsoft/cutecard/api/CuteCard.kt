@@ -56,6 +56,16 @@ import site.llinsoft.cutecard.internal.ui.DismissButton
  * @param onAudioRequested Called when the audio button is tapped.
  * The consumer is responsible for all audio playback.
  * `null` hides the audio button entirely.
+ * @param onFlipped Called when the card flip is fully complete and the back face
+ * is interactive (after the flip animation and settle lock).
+ * Use this to auto-play audio or update analytics.
+ * `null` means no callback.
+ * @param onFlippedBack Called when the user taps the back face to confirm the card
+ * as known (before the exit animation starts).
+ * Fires at the same moment as [onKnown] is eventually
+ * triggered, but earlier in the lifecycle — useful for
+ * immediate UI reactions.
+ * `null` means no callback.
  * @param dismissButton Composable slot for the "I don't know" control.
  * Receives an `onClick` lambda that must be called to
  * trigger the dismiss animation. Defaults to the
@@ -80,6 +90,8 @@ fun CuteCard(
     labels: CuteCardLabels = CuteCardLabels(),
     isPlaying: Boolean = false,
     onAudioRequested: (() -> Unit)? = null,
+    onFlipped: (() -> Unit)? = null,
+    onFlippedBack: (() -> Unit)? = null,
     dismissButton: @Composable (onClick: () -> Unit) -> Unit = { onClick ->
         DismissButton(onClick = onClick, style = style.dismissButtonStyle, labels = labels)
     }
@@ -98,6 +110,8 @@ fun CuteCard(
         labels = labels,
         isPlaying = isPlaying,
         onAudioRequested = onAudioRequested,
+        onFlipped = onFlipped,
+        onFlippedBack = onFlippedBack,
         onKnown = onKnown,
         onUnknown = onUnknown,
         dismissButton = dismissButton,
