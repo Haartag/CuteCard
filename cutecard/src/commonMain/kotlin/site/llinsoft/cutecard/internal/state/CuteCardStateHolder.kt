@@ -60,6 +60,27 @@ internal class CuteCardStateHolder(private val config: CuteCardConfig) {
     }
 
     /**
+     * Called when the unflip button is tapped.
+     * Valid from: [CuteCardState.Back] only — starts the reverse flip animation.
+     * All other states: ignored.
+     */
+    fun onUnflipTap() {
+        if (state is CuteCardState.Back) {
+            transitionTo(CuteCardState.UnFlipping)
+        }
+    }
+
+    /**
+     * Called by the composable when the reverse flip animation finishes.
+     * Moves from [CuteCardState.UnFlipping] → [CuteCardState.Front].
+     */
+    fun onUnflipAnimationFinished() {
+        if (state is CuteCardState.UnFlipping) {
+            transitionTo(CuteCardState.Front)
+        }
+    }
+
+    /**
      * Called by the composable when the flip animation finishes.
      * Moves from [CuteCardState.Flipping] → [CuteCardState.Settling].
      */

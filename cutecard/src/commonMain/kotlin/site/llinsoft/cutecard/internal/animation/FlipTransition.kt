@@ -30,17 +30,24 @@ import site.llinsoft.cutecard.internal.state.isBackVisible
  * the state holder uses this to transition from [CuteCardState.Flipping]
  * to [CuteCardState.Settling].
  *
+ * [onUnflipFinished] is called once the reverse animation completes —
+ * the state holder uses this to transition from [CuteCardState.UnFlipping]
+ * to [CuteCardState.Front].
+ *
  * @param state Current card state. Drives when the flip starts.
  * @param config Consumer config. Provides duration and direction.
- * @param onFlipFinished Called when the flip animation completes.
+ * @param onFlipFinished Called when the forward flip animation completes.
+ * @param onUnflipFinished Called when the reverse flip animation completes.
  */
 @Composable
 internal fun rememberFlipTransition(
     state: CuteCardState,
     config: CuteCardConfig,
-    onFlipFinished: () -> Unit
+    onFlipFinished: () -> Unit,
+    onUnflipFinished: () -> Unit
 ): FlipTransition {
     val isFlipped = state is CuteCardState.Flipping || state.isBackVisible
+    val isUnFlipping = state is CuteCardState.UnFlipping
 
     var targetRotation by remember { mutableFloatStateOf(0f) }
 
@@ -50,13 +57,15 @@ internal fun rememberFlipTransition(
 
     val rotation by animateFloatAsState(
         targetValue = targetRotation,
-        animationSpec = if (targetRotation == 180f)
-            CuteCardAnimator.flipSpec(config)
-        else
-            snap(),
+        animationSpec = when {
+            targetRotation == 180f -> CuteCardAnimator.flipSpec(config)
+            isUnFlipping           -> CuteCardAnimator.unflipSpec(config)
+            else                   -> snap()
+        },
         label = "card_flip_rotation",
         finishedListener = { finalValue ->
             if (finalValue == 180f) onFlipFinished()
+            else if (finalValue == 0f) onUnflipFinished()
         }
     )
 

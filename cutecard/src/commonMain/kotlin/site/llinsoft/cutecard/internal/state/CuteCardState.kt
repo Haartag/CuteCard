@@ -20,6 +20,12 @@ internal sealed class CuteCardState {
     data object Flipping : CuteCardState()
 
     /**
+     * Reverse 3D flip animation is running (back → front). Card is not interactive.
+     * Transitions automatically to [Front] when animation completes.
+     */
+    data object UnFlipping : CuteCardState()
+
+    /**
      * Flip animation has completed. The Back face is visible but the card
      * is temporarily non-interactive for [CuteCardConfig.settledLockDurationMs].
      * Prevents accidental double-tap from immediately confirming the card.
@@ -59,6 +65,7 @@ internal sealed class CuteCardState {
  */
 internal val CuteCardState.isInteractionLocked: Boolean
     get() = this is CuteCardState.Flipping
+        || this is CuteCardState.UnFlipping
         || this is CuteCardState.Settling
         || this is CuteCardState.ExitingConfirm
         || this is CuteCardState.ExitingDismiss

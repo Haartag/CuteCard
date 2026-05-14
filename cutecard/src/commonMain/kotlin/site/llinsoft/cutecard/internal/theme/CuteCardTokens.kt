@@ -104,6 +104,20 @@ internal object CuteCardTokens {
     /** Duration of the idle ↔ playing color and stroke transition. */
     const val AudioButtonTransitionDurationMs = 200
 
+    // Unflip button
+
+    /** Diameter of the unflip button's circular tap target. */
+    val UnflipButtonTapSize = 52.dp
+
+    /** Size of the rewind icon drawn inside the unflip button. */
+    val UnflipIconSize = 28.dp
+
+    /** Stroke width of the rewind icon. */
+    val UnflipIconStrokeWidth = 2.dp
+
+    /** Vertical gap between the unflip button and the top of the card. */
+    val UnflipButtonBottomPadding = 8.dp
+
     // Dismiss button
 
     /** Vertical gap between the bottom of the card and the dismiss button. */

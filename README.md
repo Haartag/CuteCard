@@ -1,6 +1,6 @@
 # CuteCard
 
-[![Version](https://img.shields.io/badge/version-0.2.8-blue)](https://github.com/llin-pixel/CuteCard/releases/tag/v0.2.8)
+[![Version](https://img.shields.io/badge/version-0.2.9-blue)](https://github.com/llin-pixel/CuteCard/releases/tag/v0.2.9)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
 A language-learning flashcard component for **Compose Multiplatform** (Android & iOS).
@@ -12,6 +12,7 @@ CuteCard handles the full interaction lifecycle of a single flashcard - 3D flip 
 ## Features
 
 - 3D card flip (horizontal or vertical axis)
+- Unflip button — lets the user flip back to the front face without dismissing
 - Confirm and dismiss exit animations (slide, scale-fade, fade)
 - Two exercise modes — see the word, recall the translation, or vice versa
 - Ghost card stack for a physical deck feel
@@ -25,7 +26,7 @@ CuteCard handles the full interaction lifecycle of a single flashcard - 3D flip 
 ## Installation
 
 ```kotlin
-implementation("site.llinsoft:cutecard:0.2.8")
+implementation("site.llinsoft:cutecard:0.2.9")
 ```
 
 For the full API reference see [documentation/CuteCard_Documentation.md](documentation/CuteCard_Documentation.md).
@@ -193,6 +194,7 @@ style = CuteCardDefaults.style().copy(
 - `audioButtonIdleLabel` / `audioButtonPlayingLabel` — text shown on the audio button in its idle and playing states.
 
 **Accessibility labels** (screen readers only, never shown visually)
+- `unflipButtonLabel` — content description for the unflip icon button.
 - `audioButtonContentDescription`, `cardFrontContentDescription`, `cardBackContentDescription`.
 
 ```kotlin
@@ -202,6 +204,7 @@ CuteCard(
     onUnknown = { ... },
     labels = CuteCardLabels(
         dismissButtonLabel = "Noch nicht",
+        unflipButtonLabel = "Wort anzeigen",
         audioButtonIdleLabel = "Anhören",
         audioButtonPlayingLabel = "Läuft...",
         audioButtonContentDescription = "Aussprache abspielen",
@@ -291,6 +294,31 @@ CuteCard(
     }
 )
 ```
+
+---
+
+## Unflip button
+
+The unflip button is **disabled by default** (`unflipButton = null`). When enabled, it appears above the card (top-right) while the back face is visible. Tapping it plays the flip animation in reverse, returning to the front face without dismissing the card.
+
+Enable it by supplying any composable — the `onClick` lambda **must be called** to trigger the animation:
+
+```kotlin
+CuteCard(
+    content = content,
+    onKnown = { ... },
+    onUnknown = { ... },
+    unflipButton = { onClick ->
+        IconButton(onClick = onClick) {
+            Icon(Icons.Default.Replay, contentDescription = "Show word")
+        }
+    }
+)
+```
+
+When `null`, no space is reserved above the card.
+
+---
 
 ## License
 

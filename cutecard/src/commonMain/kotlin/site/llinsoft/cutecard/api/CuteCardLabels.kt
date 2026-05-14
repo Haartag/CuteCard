@@ -7,6 +7,7 @@ import androidx.compose.runtime.Immutable
  * Replace any value to localise or rebrand.
  *
  * @param dismissButtonLabel Label on the "I don't know" button.
+ * @param unflipButtonLabel Label on the button that flips the card back to the front.
  * @param audioButtonIdleLabel Label on the audio button in its idle state.
  * @param audioButtonPlayingLabel Label on the audio button while audio is playing.
  * @param audioButtonContentDescription Accessibility description for the audio button.
@@ -19,6 +20,7 @@ import androidx.compose.runtime.Immutable
 @Immutable
 data class CuteCardLabels(
     val dismissButtonLabel: String = "I don't know",
+    val unflipButtonLabel: String = "Show word",
     val audioButtonIdleLabel: String = "Play word",
     val audioButtonPlayingLabel: String = "Playing...",
     val audioButtonContentDescription: String = "Play pronunciation",
