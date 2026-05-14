@@ -12,6 +12,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
+import androidx.compose.foundation.text.TextAutoSize
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import site.llinsoft.cutecard.CuteCardContent
@@ -56,8 +57,12 @@ internal fun CardBack(
                     style = style.wordTextStyle,
                     color = style.wordTextColor,
                     textAlign = TextAlign.Center,
-                    maxLines = 2,
-                    overflow = TextOverflow.Ellipsis
+                    maxLines = 3,
+                    overflow = TextOverflow.Ellipsis,
+                    autoSize = TextAutoSize.StepBased(
+                        minFontSize = style.wordAutoSizeMinFontSize,
+                        maxFontSize = style.wordTextStyle.fontSize,
+                    ),
                 )
 
                 if (content.phonetics != null) {
