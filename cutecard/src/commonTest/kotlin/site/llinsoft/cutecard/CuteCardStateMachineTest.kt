@@ -78,6 +78,49 @@ class CuteCardStateMachineTest {
         assertEquals(CuteCardState.ExitingConfirm, h.state)
     }
 
+    // ── Back → UnFlipping ─────────────────────────────────────────────────────
+
+    @Test
+    fun unflipTapFromBackStartsUnFlipping() {
+        val h = holder()
+        h.onCardTap(); h.onFlipAnimationFinished(); h.onSettled()
+        h.onUnflipTap()
+        assertEquals(CuteCardState.UnFlipping, h.state)
+    }
+
+    // ── UnFlipping → Front ────────────────────────────────────────────────────
+
+    @Test
+    fun unflipAnimationFinishedTransitionsToFront() {
+        val h = holder()
+        h.onCardTap(); h.onFlipAnimationFinished(); h.onSettled()
+        h.onUnflipTap()
+        h.onUnflipAnimationFinished()
+        assertEquals(CuteCardState.Front, h.state)
+    }
+
+    @Test
+    fun unflipTapFromFrontIsIgnored() {
+        val h = holder()
+        h.onUnflipTap()
+        assertEquals(CuteCardState.Front, h.state)
+    }
+
+    @Test
+    fun unflipTapFromFlippingIsIgnored() {
+        val h = holder()
+        h.onCardTap()
+        h.onUnflipTap()
+        assertEquals(CuteCardState.Flipping, h.state)
+    }
+
+    @Test
+    fun unflipAnimationFinishedOutsideUnFlippingIsIgnored() {
+        val h = holder()
+        h.onUnflipAnimationFinished()
+        assertEquals(CuteCardState.Front, h.state)
+    }
+
     // ── Back → ExitingDismiss ─────────────────────────────────────────────────
 
     @Test
@@ -201,6 +244,11 @@ class CuteCardStateMachineTest {
     }
 
     @Test
+    fun unFlippingIsLocked() {
+        assertTrue(CuteCardState.UnFlipping.isInteractionLocked)
+    }
+
+    @Test
     fun settlingIsLocked() {
         assertTrue(CuteCardState.Settling.isInteractionLocked)
     }
@@ -230,6 +278,11 @@ class CuteCardStateMachineTest {
     @Test
     fun flippingIsNotBackVisible() {
         assertFalse(CuteCardState.Flipping.isBackVisible)
+    }
+
+    @Test
+    fun unFlippingIsNotBackVisible() {
+        assertFalse(CuteCardState.UnFlipping.isBackVisible)
     }
 
     @Test

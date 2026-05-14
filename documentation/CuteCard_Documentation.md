@@ -24,6 +24,7 @@ One component. Two exercise modes. Fully customisable. Zero hardcoded strings.
   - [Dark mode](#dark-mode)
   - [Animation](#animation)
   - [Labels and localisation](#labels-and-localisation)
+- [Unflip button](#unflip-button)
 - [Audio playback](#audio-playback)
 - [Responsibility split](#responsibility-split)
 - [Architecture overview](#architecture-overview)
@@ -71,22 +72,16 @@ That's it. Defaults handle everything else — animations, settled lock, visual 
 
 ## Interaction model
 
-```
-Front face
-  │
-  │  Tap card
-  ▼
-Back face (full info revealed)
-  │                    │
-  │  Tap card          │  Tap "I don't know"
-  ▼                    ▼
-onKnown()          onUnknown()
-```
+Front face — tap card → Back face (full info revealed)
+- Tap card (back) → `onKnown()`
+- Tap unflip icon → Front face (reverse flip, card stays in deck)
+- Tap "I don't know" → `onUnknown()`
 
 | Action | Result |
 |---|---|
 | Tap card (front) | Flips to back. Tap is locked for `settledLockDurationMs` to prevent accidental double-tap |
 | Tap card (back, after lock) | Triggers confirm exit animation → calls `onKnown` |
+| Tap unflip button | Plays the flip animation in reverse → returns to front face. Card stays in the deck |
 | Tap dismiss button | Triggers dismiss exit animation → calls `onUnknown` |
 | Tap audio button | Calls `onAudioRequested`. Does not flip the card |
 
@@ -111,26 +106,9 @@ CuteCard(
 )
 ```
 
-```
-┌─────────────────────────┐
-│                         │
-│         hierro          │  ← tap to flip
-│        [ˈje.ro]         │
-│          noun           │
-│                         │
-└─────────────────────────┘
-           ↓ flip
-┌─────────────────────────┐
-│                         │
-│          iron           │
-│        [ˈje.ro]         │
-│          noun           │
-│                         │
-│  [ 🔊  Play word      ] │
-└─────────────────────────┘
-
-        I don't know
-```
+**Front face:** word (`hierro`), phonetics, word class. Tap to flip.  
+**Back face:** translation (`iron`), phonetics, word class, audio button. Tap to mark as known.  
+**Below card (back only):** "I don't know" button.
 
 ### Mode B — Translation → Word
 
@@ -167,7 +145,8 @@ fun CuteCard(
     onAudioRequested: (() -> Unit)? = null,
     onFlipped: (() -> Unit)? = null,
     onFlippedBack: (() -> Unit)? = null,
-    dismissButton: @Composable (onClick: () -> Unit) -> Unit = { /* built-in text button */ }
+    dismissButton: @Composable (onClick: () -> Unit) -> Unit = { /* built-in text button */ },
+    unflipButton: (@Composable (onClick: () -> Unit) -> Unit)? = null
 )
 ```
 
@@ -185,6 +164,7 @@ fun CuteCard(
 | `onFlipped` | `(() -> Unit)?` | Called when the back face becomes interactive (flip animation done + settle lock expired). `null` = no callback |
 | `onFlippedBack` | `(() -> Unit)?` | Called when the user taps the back face to confirm (before exit animation). `null` = no callback |
 | `dismissButton` | `@Composable (onClick: () -> Unit) -> Unit` | Slot for a custom dismiss control. The `onClick` lambda **must be called** to trigger the dismiss animation. Defaults to the built-in text button |
+| `unflipButton` | `(@Composable (onClick: () -> Unit) -> Unit)?` | Slot for an icon shown above the card (top-right) when the back face is visible. The `onClick` lambda **must be called** to trigger the reverse flip. `null` (default) disables the button entirely — no space is reserved |
 
 ---
 
@@ -363,6 +343,7 @@ Every user-facing string. Nothing is hardcoded in the library.
 ```kotlin
 data class CuteCardLabels(
     val dismissButtonLabel: String = "I don't know",
+    val unflipButtonLabel: String = "Show word",
     val audioButtonIdleLabel: String = "Play word",
     val audioButtonPlayingLabel: String = "Playing...",
     val audioButtonContentDescription: String = "Play pronunciation",
@@ -371,7 +352,7 @@ data class CuteCardLabels(
 )
 ```
 
-The content descriptions are read by TalkBack (Android) and VoiceOver (iOS). Tailor them to your app's voice.
+`unflipButtonLabel` is used as the accessibility content description for the rewind icon — it is never shown as visible text. All other content descriptions are read by TalkBack (Android) and VoiceOver (iOS). Tailor them to your app's voice.
 
 ---
 
@@ -575,6 +556,37 @@ CuteCard(
 
 ---
 
+## Unflip button
+
+The unflip button is **disabled by default** (`unflipButton = null`). When enabled, it appears above the card (top-right) while the back face is visible. Tapping it plays the flip animation in reverse and returns to the front face without marking the card as known or unknown — the card stays in the deck.
+
+When enabled, the button is shown and hidden automatically based on card state. A spacer of equal height is reserved while the button is hidden (front face showing), preventing layout shift during the flip.
+
+When `null`, no space is reserved — the card sits flush with the top of its container.
+
+### Enabling the unflip button
+
+The `unflipButton` slot accepts any composable. The `onClick` lambda **must be called** to trigger the reverse flip:
+
+```kotlin
+CuteCard(
+    content = content,
+    onKnown = { ... },
+    onUnknown = { ... },
+    unflipButton = { onClick ->
+        IconButton(onClick = onClick) {
+            Icon(Icons.Default.Replay, contentDescription = "Show word")
+        }
+    }
+)
+```
+
+### Unflip animation
+
+The reverse flip uses the same duration as the forward flip (`flipDurationMs`) and mirrors its easing curve. Shadow elevation is suppressed for the duration of the animation, matching the forward flip behaviour.
+
+---
+
 ## Audio playback
 
 The library handles the audio button UI and state — you handle playback.
@@ -615,9 +627,10 @@ CuteCard(
 
 | Concern | Owner |
 |---|---|
-| Flip animation | Library |
+| Flip animation (forward and reverse) | Library |
 | Exit animations | Library |
 | Settled lock (accidental tap prevention) | Library |
+| Unflip button visibility and animation | Library |
 | Audio idle / playing visual states | Library |
 | Audio playback | Consumer |
 | `isPlaying` state | Consumer |
@@ -640,21 +653,29 @@ CuteCard(
 
 /internal             ← never imported by the consumer
   /state
-    CuteCardState.kt       ← sealed class: Front, Flipping, Settling, Back, ExitingConfirm, ExitingDismiss, Gone
+    CuteCardState.kt       ← sealed class: Front, Flipping, UnFlipping, Settling, Back,
+                              ExitingConfirm, ExitingDismiss, Gone
     CuteCardStateHolder.kt ← state machine, settle timer flag
   /animation
-    CuteCardAnimator.kt    ← AnimationSpec builders from config values
-    FlipTransition.kt       ← 3D rotateY / rotateX logic
+    CuteCardAnimator.kt    ← AnimationSpec builders from config values (flipSpec, unflipSpec, exit specs)
+    FlipTransition.kt       ← 3D rotateY / rotateX logic, forward and reverse flip
     ExitTransitions.kt      ← SlideUp, SlideDown, ScaleFade, Fade, None
   /ui
     CuteCardLayout.kt      ← wires everything together
     CardFront.kt
     CardBack.kt
     AudioButton.kt
-    DismissButton.kt
+    DismissButton.kt       ← "I don't know" text button, below card
+    UnflipButton.kt        ← rewind icon button, above card (top-right)
     GhostStack.kt           ← two static cards behind the active card
   /theme
     CuteCardTokens.kt      ← internal constants (sizes, radii, durations)
 ```
 
-The lib owns ephemeral UI state (flip progress, settle lock, exit animation). The consumer owns everything else. No responsibility crosses that boundary.
+State flow:
+
+`Front → Flipping → Settling → Back → ExitingConfirm → Gone`  
+`Back → UnFlipping → Front` (unflip)  
+`Back → ExitingDismiss → Gone` (dismiss)
+
+The lib owns ephemeral UI state (flip progress, unflip progress, settle lock, exit animation). The consumer owns everything else. No responsibility crosses that boundary.

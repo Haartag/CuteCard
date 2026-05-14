@@ -37,6 +37,17 @@ internal object CuteCardAnimator {
         180f at config.flipDurationMs
     }
 
+    /**
+     * Two-phase keyframes spec for the reverse 180° → 0° unflip.
+     * Mirrors [flipSpec]: back face flicks away, then front face sweeps in.
+     */
+    fun unflipSpec(config: CuteCardConfig): AnimationSpec<Float> = keyframes {
+        durationMillis = config.flipDurationMs
+        180f at 0 using FastOutSlowInEasing
+        90f at (config.flipDurationMs * 0.4).toInt() using LinearOutSlowInEasing
+        0f at config.flipDurationMs
+    }
+
     // Exit - SlideUp
 
     fun slideUpSpec(config: CuteCardConfig): AnimationSpec<Float> = tween(

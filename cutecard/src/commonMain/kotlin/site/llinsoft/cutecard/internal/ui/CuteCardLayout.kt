@@ -46,6 +46,7 @@ import kotlinx.coroutines.delay
  * @param onKnown           Called after confirm exit animation completes.
  * @param onUnknown         Called after dismiss exit animation completes.
  * @param dismissButton     Slot shown below the card on the back face; must call its onClick to trigger exit.
+ * @param unflipButton      Slot shown above the card, right-aligned, on the back face; must call its onClick to trigger unflip.
  */
 @Composable
 internal fun CuteCardLayout(
@@ -61,6 +62,7 @@ internal fun CuteCardLayout(
     onKnown: () -> Unit,
     onUnknown: () -> Unit,
     dismissButton: @Composable (onClick: () -> Unit) -> Unit,
+    unflipButton: (@Composable (onClick: () -> Unit) -> Unit)?,
     modifier: Modifier = Modifier
 ) {
     val state = stateHolder.state
@@ -89,7 +91,8 @@ internal fun CuteCardLayout(
     val flipTransition = rememberFlipTransition(
         state = state,
         config = config,
-        onFlipFinished = stateHolder::onFlipAnimationFinished
+        onFlipFinished = stateHolder::onFlipAnimationFinished,
+        onUnflipFinished = stateHolder::onUnflipAnimationFinished
     )
 
     // ── Exit modifier ────────────────────────────────────────────────────────
@@ -112,7 +115,7 @@ internal fun CuteCardLayout(
 
     var shadowElevation by remember { mutableStateOf(style.cardElevation) }
     LaunchedEffect(state) {
-        if (state is CuteCardState.Flipping) {
+        if (state is CuteCardState.Flipping || state is CuteCardState.UnFlipping) {
             delay(50)
             shadowElevation = 0.dp
             delay((config.flipDurationMs - 100).toLong().coerceAtLeast(0))
@@ -126,6 +129,7 @@ internal fun CuteCardLayout(
 
     val frontIsWordOnly = config.frontSide == CardFrontSide.Word
     val showDismissButton = state.isBackVisible
+    val showUnflipButton = state.isBackVisible
 
     // ── Layout ───────────────────────────────────────────────────────────────
 
@@ -133,6 +137,26 @@ internal fun CuteCardLayout(
         modifier = modifier,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
+        if (unflipButton != null) {
+            if (showUnflipButton) {
+                Box(
+                    contentAlignment = Alignment.CenterEnd,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = CuteCardTokens.CardHorizontalPadding)
+                        .padding(bottom = CuteCardTokens.UnflipButtonBottomPadding)
+                ) {
+                    unflipButton(stateHolder::onUnflipTap)
+                }
+            } else {
+                Spacer(
+                    modifier = Modifier
+                        .height(CuteCardTokens.UnflipButtonTapSize)
+                        .padding(bottom = CuteCardTokens.UnflipButtonBottomPadding)
+                )
+            }
+        }
+
         Box(
             contentAlignment = Alignment.TopCenter,
             modifier = Modifier
@@ -207,6 +231,7 @@ internal fun CuteCardLayout(
                     )
                 }
             }
+
         }
 
         if (showDismissButton) {

@@ -7,6 +7,7 @@ import androidx.compose.ui.Modifier
 import site.llinsoft.cutecard.internal.state.CuteCardStateHolder
 import site.llinsoft.cutecard.internal.ui.CuteCardLayout
 import site.llinsoft.cutecard.internal.ui.DismissButton
+import site.llinsoft.cutecard.internal.ui.UnflipButton
 
 /**
  * A language-learning flashcard component for Compose Multiplatform.
@@ -66,7 +67,7 @@ import site.llinsoft.cutecard.internal.ui.DismissButton
  * triggered, but earlier in the lifecycle — useful for
  * immediate UI reactions.
  * `null` means no callback.
- * @param dismissButton Composable slot for the "I don't know" control.
+ * @param dismissButton Composable slot for the "I don't know" control shown below the card.
  * Receives an `onClick` lambda that must be called to
  * trigger the dismiss animation. Defaults to the
  * built-in text button. Use this to supply a custom
@@ -75,6 +76,18 @@ import site.llinsoft.cutecard.internal.ui.DismissButton
  *     dismissButton = { onClick ->
  *         IconButton(onClick = onClick) {
  *             Icon(Icons.Default.Close, contentDescription = "I don't know")
+ *         }
+ *     }
+ * ```
+ * @param unflipButton Composable slot for an icon shown above the card (top-right) while the
+ * back face is visible. Receives an `onClick` lambda that must be called
+ * to trigger the reverse flip animation back to the front face.
+ * `null` (default) disables the button entirely — no space is reserved.
+ * Supply any composable to enable it:
+ * ```kotlin
+ *     unflipButton = { onClick ->
+ *         IconButton(onClick = onClick) {
+ *             Icon(Icons.Default.Replay, contentDescription = "Show word")
  *         }
  *     }
  * ```
@@ -94,7 +107,8 @@ fun CuteCard(
     onFlippedBack: (() -> Unit)? = null,
     dismissButton: @Composable (onClick: () -> Unit) -> Unit = { onClick ->
         DismissButton(onClick = onClick, style = style.dismissButtonStyle, labels = labels)
-    }
+    },
+    unflipButton: (@Composable (onClick: () -> Unit) -> Unit)? = null
 ) {
     val stateHolder = remember { CuteCardStateHolder(config) }
 
@@ -115,6 +129,7 @@ fun CuteCard(
         onKnown = onKnown,
         onUnknown = onUnknown,
         dismissButton = dismissButton,
+        unflipButton = unflipButton,
         modifier = modifier
     )
 }
