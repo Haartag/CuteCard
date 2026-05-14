@@ -5,6 +5,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.TextUnit
 
 /**
  * Controls the visual appearance of the audio button's two states.
@@ -127,6 +128,8 @@ data class CuteCardStyle(
     val cardBorderColor: Color,
     val wordTextStyle: TextStyle,
     val wordTextColor: Color,
+    /** Minimum font size the word / translation text will shrink to when auto-sizing. */
+    val wordAutoSizeMinFontSize: TextUnit,
     val phoneticsTextStyle: TextStyle,
     val phoneticsTextColor: Color,
     val wordClassPillStyle: WordClassPillStyle,

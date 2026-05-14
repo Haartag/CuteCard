@@ -61,6 +61,9 @@ internal object CuteCardTokens {
     /** Font size of the primary word / translation. */
     val WordTextSize = 40.sp
 
+    /** Minimum font size the word / translation text will shrink to when auto-sizing. */
+    val WordTextMinSize = 20.sp
+
     /** Font size of the phonetic transcription. */
     val PhoneticsTextSize = 14.sp
 

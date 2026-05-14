@@ -6,6 +6,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.Hyphens
+import androidx.compose.ui.text.style.LineBreak
 import androidx.compose.ui.unit.dp
 import site.llinsoft.cutecard.internal.theme.CuteCardTokens
 
@@ -55,9 +57,12 @@ object CuteCardDefaults {
 
         wordTextStyle = TextStyle(
             fontSize = CuteCardTokens.WordTextSize,
-            fontWeight = FontWeight.Medium
+            fontWeight = FontWeight.Medium,
+            lineBreak = LineBreak.Heading,
+            hyphens = Hyphens.Auto,
         ),
         wordTextColor = Color(0xFF1A1A1A),
+        wordAutoSizeMinFontSize = CuteCardTokens.WordTextMinSize,
 
         // Phonetics
 
