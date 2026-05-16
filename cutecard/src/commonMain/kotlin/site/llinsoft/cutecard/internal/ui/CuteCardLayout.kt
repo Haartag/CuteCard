@@ -66,6 +66,7 @@ internal fun CuteCardLayout(
     modifier: Modifier = Modifier
 ) {
     val state = stateHolder.state
+    val frontFaceActive = state is CuteCardState.Front
 
     // ── Settle lock timer ────────────────────────────────────────────────────
 
@@ -206,7 +207,7 @@ internal fun CuteCardLayout(
                         style = style,
                         labels = labels,
                         isPlaying = isPlaying,
-                        onAudioRequested = onAudioRequested
+                        onAudioRequested = if (frontFaceActive) onAudioRequested else null
                     )
                 }
 
@@ -227,7 +228,7 @@ internal fun CuteCardLayout(
                         style = style,
                         labels = labels,
                         isPlaying = isPlaying,
-                        onAudioRequested = onAudioRequested
+                        onAudioRequested = if (!frontFaceActive) onAudioRequested else null
                     )
                 }
             }
