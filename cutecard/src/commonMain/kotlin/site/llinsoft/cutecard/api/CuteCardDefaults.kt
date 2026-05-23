@@ -94,8 +94,10 @@ object CuteCardDefaults {
             playingIconColor = Color(0xFF1D9E75),
             idleStrokeWidth = CuteCardTokens.AudioIconIdleStrokeWidth,
             playingStrokeWidth = CuteCardTokens.AudioIconPlayingStrokeWidth,
-            containerColor = Color(0x0F000000),
-            contentColor = Color(0xFF888888),
+            idleContainerColor = Color(0x0F000000),
+            playingContainerColor = Color(0x1A1D9E75),
+            idleContentColor = Color(0xFF888888),
+            playingContentColor = Color(0xFF1D9E75),
             shape = RoundedCornerShape(CuteCardTokens.AudioButtonCornerRadius),
             textStyle = TextStyle(
                 fontSize = CuteCardTokens.PhoneticsTextSize,
@@ -150,8 +152,9 @@ object CuteCardDefaults {
                 borderColor = Color(0x1AFFFFFF)
             ),
             audioButtonStyle = base.audioButtonStyle.copy(
-                containerColor = Color(0x0FFFFFFF),
-                contentColor = Color(0xFF888888),
+                idleContainerColor = Color(0x0FFFFFFF),
+                playingContainerColor = Color(0x1A1D9E75),
+                idleContentColor = Color(0xFF888888),
                 idleIconColor = Color(0xFF888888)
             ),
             dismissButtonStyle = base.dismissButtonStyle.copy(
