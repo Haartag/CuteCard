@@ -70,13 +70,29 @@ internal fun AudioButton(
         label = "audio_icon_stroke_width"
     )
 
+    val containerColor by animateColorAsState(
+        targetValue = if (isPlaying) style.playingContainerColor else style.idleContainerColor,
+        animationSpec = androidx.compose.animation.core.tween(
+            durationMillis = CuteCardTokens.AudioButtonTransitionDurationMs
+        ),
+        label = "audio_container_color"
+    )
+
+    val contentColor by animateColorAsState(
+        targetValue = if (isPlaying) style.playingContentColor else style.idleContentColor,
+        animationSpec = androidx.compose.animation.core.tween(
+            durationMillis = CuteCardTokens.AudioButtonTransitionDurationMs
+        ),
+        label = "audio_content_color"
+    )
+
     val label = if (isPlaying) labels.audioButtonPlayingLabel else labels.audioButtonIdleLabel
 
     Row(
         modifier = modifier
             .fillMaxWidth()
             .clip(style.shape)
-            .background(style.containerColor)
+            .background(containerColor)
             .border(width = 0.5.dp, color = style.idleIconColor.copy(alpha = 0.2f), shape = style.shape)
             .clickable(
                 interactionSource = interactionSource,
@@ -99,7 +115,7 @@ internal fun AudioButton(
         Text(
             text = label,
             style = style.textStyle,
-            color = if (isPlaying) style.playingIconColor else style.contentColor,
+            color = contentColor,
             textAlign = TextAlign.Center
         )
     }

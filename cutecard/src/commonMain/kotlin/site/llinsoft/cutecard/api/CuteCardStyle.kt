@@ -16,8 +16,10 @@ import androidx.compose.ui.unit.TextUnit
  * @param idleStrokeWidth Icon stroke width when audio is not playing.
  * @param playingStrokeWidth Icon stroke width when audio is playing. Should be
  * noticeably thicker than [idleStrokeWidth] for clear feedback.
- * @param containerColor Background color of the button surface.
- * @param contentColor Color of the button label text.
+ * @param idleContainerColor Background color of the button surface when audio is not playing.
+ * @param playingContainerColor Background color of the button surface when audio is playing.
+ * @param idleContentColor Color of the button label text when audio is not playing.
+ * @param playingContentColor Color of the button label text when audio is playing.
  * @param shape Shape of the button surface.
  * @param textStyle Typography of the button label.
  */
@@ -27,8 +29,10 @@ data class AudioButtonStyle(
     val playingIconColor: Color,
     val idleStrokeWidth: Dp,
     val playingStrokeWidth: Dp,
-    val containerColor: Color,
-    val contentColor: Color,
+    val idleContainerColor: Color,
+    val playingContainerColor: Color,
+    val idleContentColor: Color,
+    val playingContentColor: Color,
     val shape: Shape,
     val textStyle: TextStyle
 )
