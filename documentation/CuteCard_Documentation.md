@@ -251,18 +251,20 @@ data class CuteCardStyle(
 
 ```kotlin
 data class AudioButtonStyle(
-    val idleIconColor: Color,       // muted tone when not playing
-    val playingIconColor: Color,    // accent color when playing
-    val idleStrokeWidth: Dp,        // regular stroke weight
-    val playingStrokeWidth: Dp,     // thicker stroke when playing
-    val containerColor: Color,
-    val contentColor: Color,
+    val idleIconColor: Color,           // muted tone when not playing
+    val playingIconColor: Color,        // accent color when playing
+    val idleStrokeWidth: Dp,            // regular stroke weight
+    val playingStrokeWidth: Dp,         // thicker stroke when playing
+    val idleContainerColor: Color,      // button background when not playing
+    val playingContainerColor: Color,   // button background when playing
+    val idleContentColor: Color,        // label text color when not playing
+    val playingContentColor: Color,     // label text color when playing
     val shape: Shape,
     val textStyle: TextStyle
 )
 ```
 
-The color and stroke width animate automatically between idle and playing states. Duration is controlled by the internal token `AudioButtonTransitionDurationMs` (200ms).
+Icon color, stroke width, container color, and content color all animate automatically between idle and playing states. Duration is controlled by the internal token `AudioButtonTransitionDurationMs` (200ms).
 
 #### `DismissButtonStyle`
 

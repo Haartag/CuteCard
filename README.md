@@ -164,7 +164,7 @@ style = CuteCardDefaults.darkStyle()
 | `wordTextStyle` / `wordTextColor` | Primary word / translation typography |
 | `phoneticsTextStyle` / `phoneticsTextColor` | Phonetics row typography |
 | `wordClassPillStyle` | Word class chip — text, colors, shape |
-| `audioButtonStyle` | Audio button — icon colors, stroke widths, shape, typography |
+| `audioButtonStyle` | Audio button — icon colors, stroke widths, background/text colors per state, shape, typography |
 | `dismissButtonStyle` | Dismiss button — text color, typography, shape |
 | `languagePillStyle` | Language indicator pill — text style, colors, shape, padding, corner offset. `backTextColor` / `backContainerColor` override colors on the back face independently |
 
