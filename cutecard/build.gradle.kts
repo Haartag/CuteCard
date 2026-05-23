@@ -4,7 +4,7 @@ import com.vanniktech.maven.publish.JavadocJar
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
 group = "site.llinsoft"
-version = "0.2.10"
+version = "0.2.11"
 
 plugins {
     alias(libs.plugins.kotlinMultiplatform)

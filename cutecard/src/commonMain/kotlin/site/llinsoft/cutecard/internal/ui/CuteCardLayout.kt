@@ -81,7 +81,7 @@ internal fun CuteCardLayout(
 
     LaunchedEffect(state) {
         when (state) {
-            CuteCardState.Back           -> onFlipped?.invoke()
+            CuteCardState.Settling       -> onFlipped?.invoke()
             CuteCardState.ExitingConfirm -> onFlippedBack?.invoke()
             else                          -> {}
         }
