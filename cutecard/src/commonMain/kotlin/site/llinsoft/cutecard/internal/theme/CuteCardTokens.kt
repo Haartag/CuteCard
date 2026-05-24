@@ -129,9 +129,6 @@ internal object CuteCardTokens {
     /** Vertical padding inside the dismiss button tap target. */
     val DismissButtonPaddingVertical = 10.dp
 
-    /** Space reserved in the layout for the dismiss button even when it is hidden. */
-    val DismissButtonReservedHeight = 48.dp
-
     // Spacing
 
     /** Gap between word and phonetics. */

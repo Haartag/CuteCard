@@ -5,11 +5,9 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -19,8 +17,11 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.semantics.hideFromAccessibility
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import site.llinsoft.cutecard.CardFrontSide
 import site.llinsoft.cutecard.CuteCardConfig
@@ -139,22 +140,16 @@ internal fun CuteCardLayout(
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         if (unflipButton != null) {
-            if (showUnflipButton) {
-                Box(
-                    contentAlignment = Alignment.CenterEnd,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = CuteCardTokens.CardHorizontalPadding)
-                        .padding(bottom = CuteCardTokens.UnflipButtonBottomPadding)
-                ) {
-                    unflipButton(stateHolder::onUnflipTap)
-                }
-            } else {
-                Spacer(
-                    modifier = Modifier
-                        .height(CuteCardTokens.UnflipButtonTapSize)
-                        .padding(bottom = CuteCardTokens.UnflipButtonBottomPadding)
-                )
+            Box(
+                contentAlignment = Alignment.CenterEnd,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = CuteCardTokens.CardHorizontalPadding)
+                    .padding(bottom = CuteCardTokens.UnflipButtonBottomPadding)
+                    .alpha(if (showUnflipButton) 1f else 0f)
+                    .semantics { if (!showUnflipButton) hideFromAccessibility() }
+            ) {
+                unflipButton { if (showUnflipButton) stateHolder.onUnflipTap() }
             }
         }
 
@@ -235,16 +230,13 @@ internal fun CuteCardLayout(
 
         }
 
-        if (showDismissButton) {
-            Box(modifier = Modifier.padding(top = CuteCardTokens.DismissButtonTopPadding)) {
-                dismissButton(stateHolder::onDismissTap)
-            }
-        } else {
-            Spacer(
-                modifier = Modifier
-                    .padding(top = CuteCardTokens.DismissButtonTopPadding)
-                    .height(CuteCardTokens.DismissButtonReservedHeight)
-            )
+        Box(
+            modifier = Modifier
+                .padding(top = CuteCardTokens.DismissButtonTopPadding)
+                .alpha(if (showDismissButton) 1f else 0f)
+                .semantics { if (!showDismissButton) hideFromAccessibility() }
+        ) {
+            dismissButton { if (showDismissButton) stateHolder.onDismissTap() }
         }
     }
 }
