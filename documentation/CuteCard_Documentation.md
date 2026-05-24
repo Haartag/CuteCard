@@ -163,8 +163,8 @@ fun CuteCard(
 | `onAudioRequested` | `(() -> Unit)?` | Called on audio button tap. `null` hides the button entirely |
 | `onFlipped` | `(() -> Unit)?` | Called when the back face becomes interactive (flip animation done + settle lock expired). `null` = no callback |
 | `onFlippedBack` | `(() -> Unit)?` | Called when the user taps the back face to confirm (before exit animation). `null` = no callback |
-| `dismissButton` | `@Composable (onClick: () -> Unit) -> Unit` | Slot for a custom dismiss control. The `onClick` lambda **must be called** to trigger the dismiss animation. Defaults to the built-in text button |
-| `unflipButton` | `(@Composable (onClick: () -> Unit) -> Unit)?` | Slot for an icon shown above the card (top-right) when the back face is visible. The `onClick` lambda **must be called** to trigger the reverse flip. `null` (default) disables the button entirely — no space is reserved |
+| `dismissButton` | `@Composable (onClick: () -> Unit) -> Unit` | Slot for a custom dismiss control. The `onClick` lambda **must be called** to trigger the dismiss animation. Defaults to the built-in text button. While hidden (front face), the slot is rendered invisibly so the card height stays constant |
+| `unflipButton` | `(@Composable (onClick: () -> Unit) -> Unit)?` | Slot for an icon shown above the card (top-right) when the back face is visible. The `onClick` lambda **must be called** to trigger the reverse flip. While hidden (front face), the slot is rendered invisibly so the card height stays constant. `null` (default) disables the button entirely — no space is reserved |
 
 ---
 
@@ -562,7 +562,7 @@ CuteCard(
 
 The unflip button is **disabled by default** (`unflipButton = null`). When enabled, it appears above the card (top-right) while the back face is visible. Tapping it plays the flip animation in reverse and returns to the front face without marking the card as known or unknown — the card stays in the deck.
 
-When enabled, the button is shown and hidden automatically based on card state. A spacer of equal height is reserved while the button is hidden (front face showing), preventing layout shift during the flip.
+When enabled, the button is shown and hidden automatically based on card state. While hidden (front face showing), the slot is rendered invisibly at its natural size — the card height stays constant regardless of how tall the button is. Hidden slots are also excluded from the accessibility tree so they cannot be focused by TalkBack or VoiceOver.
 
 When `null`, no space is reserved — the card sits flush with the top of its container.
 

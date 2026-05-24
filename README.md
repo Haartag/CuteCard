@@ -1,6 +1,6 @@
 # CuteCard
 
-[![Version](https://img.shields.io/badge/version-0.3.0-blue)](https://github.com/llin-pixel/CuteCard/releases/tag/v0.3.0)
+[![Version](https://img.shields.io/badge/version-0.3.1-blue)](https://github.com/llin-pixel/CuteCard/releases/tag/v0.3.1)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
 A language-learning flashcard component for **Compose Multiplatform** (Android & iOS).
@@ -26,7 +26,7 @@ CuteCard handles the full interaction lifecycle of a single flashcard - 3D flip 
 ## Installation
 
 ```kotlin
-implementation("site.llinsoft:cutecard:0.3.0")
+implementation("site.llinsoft:cutecard:0.3.1")
 ```
 
 For the full API reference see [documentation/CuteCard_Documentation.md](documentation/CuteCard_Documentation.md).
