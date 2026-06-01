@@ -1,8 +1,8 @@
 package site.llinsoft.cutecard.internal.ui
 
 import androidx.compose.foundation.border
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Text
@@ -40,9 +40,9 @@ internal fun CardFront(
                 .semantics {
                     contentDescription = labels.cardFrontContentDescription
                 },
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Center
+            horizontalAlignment = Alignment.CenterHorizontally
         ) {
+            Spacer(Modifier.weight(0.4f))
             Text(
                 text = content.word,
                 style = style.wordTextStyle,
@@ -55,6 +55,7 @@ internal fun CardFront(
                     maxFontSize = style.wordTextStyle.fontSize,
                 ),
             )
+            Spacer(Modifier.weight(0.6f))
         }
 
         if (content.sourceLanguage != null) {
