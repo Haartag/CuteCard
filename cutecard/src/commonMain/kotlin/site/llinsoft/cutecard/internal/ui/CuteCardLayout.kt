@@ -57,6 +57,7 @@ internal fun CuteCardLayout(
     style: CuteCardStyle,
     labels: CuteCardLabels,
     isPlaying: Boolean,
+    remainingCards: Int?,
     onAudioRequested: (() -> Unit)?,
     onFlipped: (() -> Unit)?,
     onFlippedBack: (() -> Unit)?,
@@ -68,6 +69,11 @@ internal fun CuteCardLayout(
 ) {
     val state = stateHolder.state
     val frontFaceActive = state is CuteCardState.Front
+    val ghostCount = when {
+        remainingCards == null || remainingCards >= 3 -> 2
+        remainingCards == 2 -> 1
+        else -> 0
+    }
 
     // ── Settle lock timer ────────────────────────────────────────────────────
 
@@ -161,6 +167,7 @@ internal fun CuteCardLayout(
         ) {
             GhostStack(
                 style = style,
+                ghostCount = ghostCount,
                 modifier = Modifier
                     .fillMaxWidth()
                     .aspectRatio(style.cardAspectRatio)

@@ -131,6 +131,7 @@ private fun DeckScreen(
         key(cardKey) {
             CuteCard(
                 content = card,
+                remainingCards = remaining,
                 onKnown = onKnown,
                 onUnknown = onUnknown
             )

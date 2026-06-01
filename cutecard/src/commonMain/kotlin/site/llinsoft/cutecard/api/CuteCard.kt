@@ -54,6 +54,10 @@ import site.llinsoft.cutecard.internal.ui.UnflipButton
  * @param isPlaying Whether audio is currently playing.
  * Drives the audio button's visual state.
  * Owned and updated by the consumer.
+ * @param remainingCards Number of cards left in the deck including this one.
+ * When `null` (default) the ghost stack always shows two cards.
+ * Pass the actual count to have the stack shrink on the last two cards:
+ * 2 cards remaining → one ghost card, 1 card remaining → no ghost cards.
  * @param onAudioRequested Called when the audio button is tapped.
  * The consumer is responsible for all audio playback.
  * `null` hides the audio button entirely.
@@ -102,6 +106,7 @@ fun CuteCard(
     style: CuteCardStyle = CuteCardDefaults.style(),
     labels: CuteCardLabels = CuteCardLabels(),
     isPlaying: Boolean = false,
+    remainingCards: Int? = null,
     onAudioRequested: (() -> Unit)? = null,
     onFlipped: (() -> Unit)? = null,
     onFlippedBack: (() -> Unit)? = null,
@@ -123,6 +128,7 @@ fun CuteCard(
         style = style,
         labels = labels,
         isPlaying = isPlaying,
+        remainingCards = remainingCards,
         onAudioRequested = onAudioRequested,
         onFlipped = onFlipped,
         onFlippedBack = onFlippedBack,

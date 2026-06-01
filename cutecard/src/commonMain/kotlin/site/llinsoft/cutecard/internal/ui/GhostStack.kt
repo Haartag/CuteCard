@@ -21,34 +21,40 @@ import site.llinsoft.cutecard.CuteCardStyle
 import site.llinsoft.cutecard.internal.theme.CuteCardTokens
 
 /**
- * Two static ghost cards behind the active card to create a physical deck illusion.
+ * Decorative ghost cards behind the active card to create a physical deck illusion.
  *
  * Ghost cards have no interaction — they are purely decorative.
  *
- * @param style  Consumer style — provides card shape, background, border color.
+ * @param style       Consumer style — provides card shape, background, border color.
+ * @param ghostCount  Number of ghost cards to show (0, 1, or 2).
  */
 @Composable
 internal fun GhostStack(
     style: CuteCardStyle,
+    ghostCount: Int,
     modifier: Modifier = Modifier
 ) {
     Box(modifier = modifier) {
-        GhostCard(
-            scale = CuteCardTokens.GhostCard3Scale,
-            elevation = CuteCardTokens.GhostCard3Elevation,
-            offsetY = CuteCardTokens.GhostCard3OffsetY,
-            alpha = CuteCardTokens.GhostCard3Alpha,
-            style = style,
-            modifier = Modifier.align(Alignment.BottomCenter)
-        )
-        GhostCard(
-            scale = CuteCardTokens.GhostCard2Scale,
-            elevation = CuteCardTokens.GhostCard2Elevation,
-            offsetY = CuteCardTokens.GhostCard2OffsetY,
-            alpha = CuteCardTokens.GhostCard2Alpha,
-            style = style,
-            modifier = Modifier.align(Alignment.BottomCenter)
-        )
+        if (ghostCount >= 2) {
+            GhostCard(
+                scale = CuteCardTokens.GhostCard3Scale,
+                elevation = CuteCardTokens.GhostCard3Elevation,
+                offsetY = CuteCardTokens.GhostCard3OffsetY,
+                alpha = CuteCardTokens.GhostCard3Alpha,
+                style = style,
+                modifier = Modifier.align(Alignment.BottomCenter)
+            )
+        }
+        if (ghostCount >= 1) {
+            GhostCard(
+                scale = CuteCardTokens.GhostCard2Scale,
+                elevation = CuteCardTokens.GhostCard2Elevation,
+                offsetY = CuteCardTokens.GhostCard2OffsetY,
+                alpha = CuteCardTokens.GhostCard2Alpha,
+                style = style,
+                modifier = Modifier.align(Alignment.BottomCenter)
+            )
+        }
     }
 }
 
