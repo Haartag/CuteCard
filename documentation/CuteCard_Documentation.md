@@ -26,6 +26,7 @@ One component. Two exercise modes. Fully customisable. Zero hardcoded strings.
   - [Labels and localisation](#labels-and-localisation)
 - [Unflip button](#unflip-button)
 - [Audio playback](#audio-playback)
+- [Ghost stack](#ghost-stack)
 - [Responsibility split](#responsibility-split)
 - [Architecture overview](#architecture-overview)
 
@@ -142,6 +143,7 @@ fun CuteCard(
     style: CuteCardStyle = CuteCardDefaults.style(),
     labels: CuteCardLabels = CuteCardLabels(),
     isPlaying: Boolean = false,
+    remainingCards: Int? = null,
     onAudioRequested: (() -> Unit)? = null,
     onFlipped: (() -> Unit)? = null,
     onFlippedBack: (() -> Unit)? = null,
@@ -160,6 +162,7 @@ fun CuteCard(
 | `style` | `CuteCardStyle` | Visual appearance |
 | `labels` | `CuteCardLabels` | All user-facing strings |
 | `isPlaying` | `Boolean` | Drives audio button visual state. Owned by the consumer |
+| `remainingCards` | `Int?` | Number of cards left in the deck including this one. `null` (default) = always show two ghost cards. Pass the count to shrink the stack: `2` → one ghost, `1` → no ghost |
 | `onAudioRequested` | `(() -> Unit)?` | Called on audio button tap. `null` hides the button entirely |
 | `onFlipped` | `(() -> Unit)?` | Called when the back face becomes interactive (flip animation done + settle lock expired). `null` = no callback |
 | `onFlippedBack` | `(() -> Unit)?` | Called when the user taps the back face to confirm (before exit animation). `null` = no callback |
@@ -625,6 +628,30 @@ CuteCard(
 
 ---
 
+## Ghost stack
+
+By default, two decorative ghost cards are always visible behind the active card, giving the illusion of a physical deck. Pass `remainingCards` to have the stack shrink automatically as the deck runs low.
+
+```kotlin
+CuteCard(
+    content = deck.first(),
+    remainingCards = deck.size,   // shrinks ghost stack on the last two cards
+    onKnown = { /* advance */ },
+    onUnknown = { /* re-queue */ }
+)
+```
+
+| `remainingCards` value | Ghost cards shown |
+|---|---|
+| `null` (default) | 2 — full stack always |
+| ≥ 3 | 2 |
+| 2 | 1 |
+| ≤ 1 | 0 |
+
+When `null`, the component behaves exactly as before — no behavior change unless you opt in by passing the count.
+
+---
+
 ## Responsibility split
 
 | Concern | Owner |
@@ -636,6 +663,7 @@ CuteCard(
 | Audio idle / playing visual states | Library |
 | Audio playback | Consumer |
 | `isPlaying` state | Consumer |
+| `remainingCards` state | Consumer |
 | Card ordering / deck logic | Consumer |
 | Data fetching | Consumer |
 | Navigation between cards | Consumer |

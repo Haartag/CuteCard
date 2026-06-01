@@ -1,6 +1,6 @@
 # CuteCard
 
-[![Version](https://img.shields.io/badge/version-0.3.2-blue)](https://github.com/llin-pixel/CuteCard/releases/tag/v0.3.2)
+[![Version](https://img.shields.io/badge/version-0.3.3-blue)](https://github.com/llin-pixel/CuteCard/releases/tag/v0.3.3)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
 A language-learning flashcard component for **Compose Multiplatform** (Android & iOS).
@@ -26,7 +26,7 @@ CuteCard handles the full interaction lifecycle of a single flashcard - 3D flip 
 ## Installation
 
 ```kotlin
-implementation("site.llinsoft:cutecard:0.3.2")
+implementation("site.llinsoft:cutecard:0.3.3")
 ```
 
 For the full API reference see [documentation/CuteCard_Documentation.md](documentation/CuteCard_Documentation.md).
@@ -260,6 +260,28 @@ CuteCard(
 ```
 
 Both default to `null` (no callback).
+
+---
+
+## Ghost stack
+
+By default the component always renders two decorative ghost cards behind the active card. Pass `remainingCards` to have the stack shrink automatically as the deck runs out.
+
+```kotlin
+CuteCard(
+    content = content,
+    onKnown = { ... },
+    onUnknown = { ... },
+    remainingCards = deck.size   // 3+ → full stack, 2 → one ghost, 1 → no stack
+)
+```
+
+| `remainingCards` | Ghost cards shown |
+|---|---|
+| `null` (default) | 2 — always full stack |
+| ≥ 3 | 2 |
+| 2 | 1 |
+| ≤ 1 | 0 |
 
 ---
 
