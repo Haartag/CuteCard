@@ -4,19 +4,18 @@ import androidx.compose.runtime.Stable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
-import site.llinsoft.cutecard.CuteCardConfig
 
 /**
  * Drives the [CuteCardState] machine for a single [CuteCard] instance.
  *
- * Created once via `remember { CuteCardStateHolder(config) }` inside the
+ * Created once via `remember { CuteCardStateHolder() }` inside the
  * public [CuteCard] composable. Scoped to the composable — destroyed when
  * the card leaves composition.
  *
  * All state transitions are validated — invalid transitions are silently ignored.
  */
 @Stable
-internal class CuteCardStateHolder(private val config: CuteCardConfig) {
+internal class CuteCardStateHolder {
 
     /**
      * Current state of the card. Observed by the composable to drive
@@ -65,6 +64,31 @@ internal class CuteCardStateHolder(private val config: CuteCardConfig) {
      * All other states: ignored.
      */
     fun onUnflipTap() {
+        if (state is CuteCardState.Back) {
+            transitionTo(CuteCardState.UnFlipping)
+        }
+    }
+
+    // Code-driven transitions
+    //
+    // Separate from the tap handlers above because a tap on the back face means
+    // "I know it" and starts the confirm exit. Code asking for a flip never means that.
+
+    /**
+     * Flips the card from code, as a tap on the front face would.
+     * Valid from: [CuteCardState.Front] only. All other states: ignored.
+     */
+    fun requestFlip() {
+        if (state is CuteCardState.Front) {
+            transitionTo(CuteCardState.Flipping)
+        }
+    }
+
+    /**
+     * Reverse-flips the card from code, as the unflip button would.
+     * Valid from: [CuteCardState.Back] only. All other states: ignored.
+     */
+    fun requestUnflip() {
         if (state is CuteCardState.Back) {
             transitionTo(CuteCardState.UnFlipping)
         }

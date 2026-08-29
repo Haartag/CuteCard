@@ -21,3 +21,6 @@ node_modules/
 *.aab
 *.ipa
 *.orig
+
+# Local working notes (not tracked)
+notes/

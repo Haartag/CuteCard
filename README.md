@@ -1,6 +1,6 @@
 # CuteCard
 
-[![Version](https://img.shields.io/badge/version-0.3.3-blue)](https://github.com/llin-pixel/CuteCard/releases/tag/v0.3.3)
+[![Version](https://img.shields.io/badge/version-0.4.0-blue)](https://github.com/Haartag/CuteCard/releases/tag/v0.4.0)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
 A language-learning flashcard component for **Compose Multiplatform** (Android & iOS).
@@ -13,6 +13,7 @@ CuteCard handles the full interaction lifecycle of a single flashcard - 3D flip 
 
 - 3D card flip (horizontal or vertical axis)
 - Unflip button — lets the user flip back to the front face without dismissing
+- Programmatic flip — drive the card from code for onboarding and tutorials, with taps safely disabled while audio stays usable
 - Confirm and dismiss exit animations (slide, scale-fade, fade)
 - Two exercise modes — see the word, recall the translation, or vice versa
 - Ghost card stack for a physical deck feel
@@ -26,7 +27,7 @@ CuteCard handles the full interaction lifecycle of a single flashcard - 3D flip 
 ## Installation
 
 ```kotlin
-implementation("site.llinsoft:cutecard:0.3.3")
+implementation("site.llinsoft:cutecard:0.4.0")
 ```
 
 For the full API reference see [documentation/CuteCard_Documentation.md](documentation/CuteCard_Documentation.md).
@@ -339,6 +340,33 @@ CuteCard(
 ```
 
 When `null`, no space is reserved above the card.
+
+---
+
+## Programmatic flip
+
+`forceFlipped` flips the card from code — for onboarding and tutorial demonstrations. `null` (default) leaves the card user-driven, `true` shows the back face, `false` shows the front face.
+
+```kotlin
+var demoFlipped by remember { mutableStateOf<Boolean?>(null) }
+
+LaunchedEffect(Unit) {
+    delay(900)
+    demoFlipped = true      // flip to the back face
+    delay(2600)
+    demoFlipped = false     // flip back to the front
+    delay(700)
+    demoFlipped = null      // hand control back to the user
+}
+
+CuteCard(content = content, forceFlipped = demoFlipped, onKnown = { ... }, onUnknown = { ... })
+```
+
+It is a **target, not an event** — a value set mid-animation is applied once the card is eligible, so your tutorial's delays never have to wait out `flipDurationMs` or `settledLockDurationMs`. Reset it to `null` when the tutorial ends: a target left at `true` flips the next card too, and `false` pins the card to its front face.
+
+Because a stray tap on the back face would mark the card known and remove it mid-tutorial, `cardActionsEnabled` defaults to `forceFlipped == null`. While it is `false`, tap-to-flip, tap-to-confirm, dismiss and unflip are inert — but the dismiss and unflip buttons stay visible for coach marks, and **the audio button keeps working**. Pass `cardActionsEnabled = true` to allow code-driven flips and user taps together.
+
+See the [full documentation](documentation/CuteCard_Documentation.md#programmatic-flip) for details.
 
 ---
 

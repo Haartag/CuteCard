@@ -41,6 +41,7 @@ import site.llinsoft.cutecard.internal.ui.UnflipButton
  * - Tap card (back, after settle delay) → mark as known → [onKnown]
  * - Tap dismiss button → mark as unknown → [onUnknown]
  * - Tap audio button → [onAudioRequested] (consumer handles playback)
+ * - Set [forceFlipped] → flip the card from code (onboarding / tutorials)
  *
  * @param content All data for this card. One instance = one card.
  * Changing this value resets the card to its front state.
@@ -58,6 +59,23 @@ import site.llinsoft.cutecard.internal.ui.UnflipButton
  * When `null` (default) the ghost stack always shows two cards.
  * Pass the actual count to have the stack shrink on the last two cards:
  * 2 cards remaining → one ghost card, 1 card remaining → no ghost cards.
+ * @param forceFlipped Flips the card from code instead of waiting for a tap.
+ * `null` (default) leaves the card entirely user-driven.
+ * `true` shows the back face, `false` shows the front face.
+ * This is a target, not a one-shot event: a value set while the
+ * card is mid-animation is applied as soon as the card is
+ * eligible, so callers never have to time their requests around
+ * [CuteCardConfig.flipDurationMs] or
+ * [CuteCardConfig.settledLockDurationMs].
+ * Intended for onboarding and tutorial demonstrations.
+ * @param cardActionsEnabled Whether the user can drive the card. When `false`, tap-to-flip,
+ * tap-to-confirm, the dismiss button and the unflip button are all
+ * inert — the buttons stay visible so a tutorial can point at them.
+ * **Audio playback is unaffected** and the audio button keeps
+ * working; this gates only the actions that advance the card.
+ * Defaults to `forceFlipped == null`, so driving the card from
+ * code locks the user out automatically. Pass `true` explicitly
+ * to allow both at once.
  * @param onAudioRequested Called when the audio button is tapped.
  * The consumer is responsible for all audio playback.
  * `null` hides the audio button entirely.
@@ -107,6 +125,8 @@ fun CuteCard(
     labels: CuteCardLabels = CuteCardLabels(),
     isPlaying: Boolean = false,
     remainingCards: Int? = null,
+    forceFlipped: Boolean? = null,
+    cardActionsEnabled: Boolean = (forceFlipped == null),
     onAudioRequested: (() -> Unit)? = null,
     onFlipped: (() -> Unit)? = null,
     onFlippedBack: (() -> Unit)? = null,
@@ -115,7 +135,7 @@ fun CuteCard(
     },
     unflipButton: (@Composable (onClick: () -> Unit) -> Unit)? = null
 ) {
-    val stateHolder = remember { CuteCardStateHolder(config) }
+    val stateHolder = remember { CuteCardStateHolder() }
 
     LaunchedEffect(content) {
         stateHolder.reset()
@@ -129,6 +149,8 @@ fun CuteCard(
         labels = labels,
         isPlaying = isPlaying,
         remainingCards = remainingCards,
+        forceFlipped = forceFlipped,
+        cardActionsEnabled = cardActionsEnabled,
         onAudioRequested = onAudioRequested,
         onFlipped = onFlipped,
         onFlippedBack = onFlippedBack,

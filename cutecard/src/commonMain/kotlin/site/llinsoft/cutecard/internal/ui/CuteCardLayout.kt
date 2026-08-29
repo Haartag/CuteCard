@@ -41,6 +41,8 @@ import kotlinx.coroutines.delay
  * Internal layout for [CuteCard]: ghost stack, flip transition, exit animation,
  * and face routing based on [CuteCardConfig.frontSide].
  *
+ * @param forceFlipped       Code-driven target face. Null leaves the card user-driven.
+ * @param cardActionsEnabled Whether user taps drive the card. Does not gate audio.
  * @param onAudioRequested  Null hides the audio button.
  * @param onFlipped         Called when the back face becomes interactive (flip + settle done).
  * @param onFlippedBack     Called when the user taps the back face to confirm (before exit starts).
@@ -58,6 +60,8 @@ internal fun CuteCardLayout(
     labels: CuteCardLabels,
     isPlaying: Boolean,
     remainingCards: Int?,
+    forceFlipped: Boolean?,
+    cardActionsEnabled: Boolean,
     onAudioRequested: (() -> Unit)?,
     onFlipped: (() -> Unit)?,
     onFlippedBack: (() -> Unit)?,
@@ -69,6 +73,7 @@ internal fun CuteCardLayout(
 ) {
     val state = stateHolder.state
     val frontFaceActive = state is CuteCardState.Front
+    val userInteractive = cardActionsEnabled && !state.isInteractionLocked
     val ghostCount = when {
         remainingCards == null || remainingCards >= 3 -> 2
         remainingCards == 2 -> 1
@@ -91,6 +96,19 @@ internal fun CuteCardLayout(
             CuteCardState.Settling       -> onFlipped?.invoke()
             CuteCardState.ExitingConfirm -> onFlippedBack?.invoke()
             else                          -> {}
+        }
+    }
+
+    // ── Code-driven flip ─────────────────────────────────────────────────────
+    // forceFlipped is a target, not an event. Keying on state as well means a
+    // target set mid-animation is applied once the card becomes eligible,
+    // instead of being dropped.
+
+    LaunchedEffect(forceFlipped, state) {
+        when {
+            forceFlipped == true && state is CuteCardState.Front -> stateHolder.requestFlip()
+            forceFlipped == false && state is CuteCardState.Back -> stateHolder.requestUnflip()
+            else -> Unit
         }
     }
 
@@ -155,7 +173,7 @@ internal fun CuteCardLayout(
                     .alpha(if (showUnflipButton) 1f else 0f)
                     .semantics { if (!showUnflipButton) hideFromAccessibility() }
             ) {
-                unflipButton { if (showUnflipButton) stateHolder.onUnflipTap() }
+                unflipButton { if (userInteractive) stateHolder.onUnflipTap() }
             }
         }
 
@@ -184,7 +202,7 @@ internal fun CuteCardLayout(
                         clip = false
                     )
                     .clickable(
-                        enabled = !state.isInteractionLocked,
+                        enabled = userInteractive,
                         indication = null,
                         interactionSource = null,
                         onClick = stateHolder::onCardTap
@@ -243,7 +261,7 @@ internal fun CuteCardLayout(
                 .alpha(if (showDismissButton) 1f else 0f)
                 .semantics { if (!showDismissButton) hideFromAccessibility() }
         ) {
-            dismissButton { if (showDismissButton) stateHolder.onDismissTap() }
+            dismissButton { if (userInteractive) stateHolder.onDismissTap() }
         }
     }
 }

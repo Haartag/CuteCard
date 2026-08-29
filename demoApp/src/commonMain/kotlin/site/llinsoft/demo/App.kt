@@ -16,7 +16,9 @@ import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableIntStateOf
@@ -26,6 +28,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import kotlinx.coroutines.delay
 import site.llinsoft.cutecard.CuteCard
 import site.llinsoft.cutecard.CuteCardContent
 
@@ -48,6 +51,26 @@ private fun DemoContent() {
     var knownCount by remember { mutableIntStateOf(0) }
     var cardKey by remember { mutableIntStateOf(0) }
 
+    // Onboarding demo. State lives above key(cardKey) so the tutorial runs once
+    // for the session instead of restarting on every card.
+    var demoFlipped by remember { mutableStateOf<Boolean?>(null) }
+    var tutorialCaption by remember { mutableStateOf<String?>(null) }
+    var tutorialRun by remember { mutableIntStateOf(0) }
+
+    LaunchedEffect(tutorialRun) {
+        demoFlipped = false          // normalise to the front face before starting
+        tutorialCaption = "Watch — tapping the card reveals the translation"
+        delay(900)
+        demoFlipped = true
+        delay(2600)
+        tutorialCaption = "Tap it again once you know the word"
+        delay(1400)
+        demoFlipped = false
+        delay(700)
+        demoFlipped = null           // hand control back to the user
+        tutorialCaption = null
+    }
+
     if (deck.isEmpty()) {
         CompletionScreen(
             knownCount = knownCount,
@@ -65,6 +88,9 @@ private fun DemoContent() {
             knownCount = knownCount,
             remaining = deck.size,
             total = initialDeck.size,
+            demoFlipped = demoFlipped,
+            tutorialCaption = tutorialCaption,
+            onReplayTutorial = { tutorialRun++ },
             onKnown = {
                 deck = deck.drop(1)
                 knownCount++
@@ -86,6 +112,9 @@ private fun DeckScreen(
     knownCount: Int,
     remaining: Int,
     total: Int,
+    demoFlipped: Boolean?,
+    tutorialCaption: String?,
+    onReplayTutorial: () -> Unit,
     onKnown: () -> Unit,
     onUnknown: () -> Unit
 ) {
@@ -132,6 +161,7 @@ private fun DeckScreen(
             CuteCard(
                 content = card,
                 remainingCards = remaining,
+                forceFlipped = demoFlipped,
                 onKnown = onKnown,
                 onUnknown = onUnknown
             )
@@ -140,11 +170,21 @@ private fun DeckScreen(
         Spacer(modifier = Modifier.weight(1f))
 
         Text(
-            text = "$remaining card${if (remaining == 1) "" else "s"} remaining",
+            text = tutorialCaption
+                ?: "$remaining card${if (remaining == 1) "" else "s"} remaining",
             style = MaterialTheme.typography.bodySmall,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-            modifier = Modifier.padding(bottom = 24.dp)
+            color = if (tutorialCaption != null)
+                MaterialTheme.colorScheme.primary
+            else
+                MaterialTheme.colorScheme.onSurfaceVariant
         )
+
+        TextButton(
+            onClick = onReplayTutorial,
+            modifier = Modifier.padding(bottom = 12.dp)
+        ) {
+            Text("Replay tutorial", style = MaterialTheme.typography.bodySmall)
+        }
     }
 }
 

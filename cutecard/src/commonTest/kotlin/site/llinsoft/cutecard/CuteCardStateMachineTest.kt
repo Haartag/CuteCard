@@ -1,6 +1,5 @@
 package site.llinsoft.cutecard
 
-import site.llinsoft.cutecard.CuteCardConfig
 import site.llinsoft.cutecard.internal.state.CuteCardState
 import site.llinsoft.cutecard.internal.state.CuteCardStateHolder
 import site.llinsoft.cutecard.internal.state.isBackVisible
@@ -12,7 +11,7 @@ import kotlin.test.assertTrue
 
 class CuteCardStateMachineTest {
 
-    private fun holder() = CuteCardStateHolder(CuteCardConfig())
+    private fun holder() = CuteCardStateHolder()
 
     // ── Initial state ────────────────────────────────────────────────────────
 
@@ -308,5 +307,110 @@ class CuteCardStateMachineTest {
     @Test
     fun goneIsNotBackVisible() {
         assertFalse(CuteCardState.Gone.isBackVisible)
+    }
+
+    // ── Code-driven flip ──────────────────────────────────────────────────────
+
+    @Test
+    fun requestFlipFromFrontStartsFlip() {
+        val h = holder()
+        h.requestFlip()
+        assertEquals(CuteCardState.Flipping, h.state)
+    }
+
+    @Test
+    fun requestFlipFromFlippingIsIgnored() {
+        val h = holder()
+        h.requestFlip()
+        h.requestFlip()
+        assertEquals(CuteCardState.Flipping, h.state)
+    }
+
+    @Test
+    fun requestFlipFromSettlingIsIgnored() {
+        val h = holder()
+        h.requestFlip(); h.onFlipAnimationFinished()
+        h.requestFlip()
+        assertEquals(CuteCardState.Settling, h.state)
+    }
+
+    @Test
+    fun requestFlipFromBackIsIgnored() {
+        val h = holder()
+        h.requestFlip(); h.onFlipAnimationFinished(); h.onSettled()
+        h.requestFlip()
+        assertEquals(CuteCardState.Back, h.state)
+    }
+
+    @Test
+    fun requestFlipFromGoneIsIgnored() {
+        val h = holder()
+        h.requestFlip(); h.onFlipAnimationFinished(); h.onSettled()
+        h.onCardTap(); h.onExitAnimationFinished()
+        h.requestFlip()
+        assertEquals(CuteCardState.Gone, h.state)
+    }
+
+    @Test
+    fun requestUnflipFromBackStartsUnFlipping() {
+        val h = holder()
+        h.requestFlip(); h.onFlipAnimationFinished(); h.onSettled()
+        h.requestUnflip()
+        assertEquals(CuteCardState.UnFlipping, h.state)
+    }
+
+    @Test
+    fun requestUnflipFromFrontIsIgnored() {
+        val h = holder()
+        h.requestUnflip()
+        assertEquals(CuteCardState.Front, h.state)
+    }
+
+    @Test
+    fun requestUnflipFromSettlingIsIgnored() {
+        val h = holder()
+        h.requestFlip(); h.onFlipAnimationFinished()
+        h.requestUnflip()
+        assertEquals(CuteCardState.Settling, h.state)
+    }
+
+    @Test
+    fun requestUnflipFromUnFlippingIsIgnored() {
+        val h = holder()
+        h.requestFlip(); h.onFlipAnimationFinished(); h.onSettled()
+        h.requestUnflip()
+        h.requestUnflip()
+        assertEquals(CuteCardState.UnFlipping, h.state)
+    }
+
+    @Test
+    fun requestFlipWorksAfterReset() {
+        val h = holder()
+        h.requestFlip(); h.onFlipAnimationFinished(); h.onSettled()
+        h.reset()
+        h.requestFlip()
+        assertEquals(CuteCardState.Flipping, h.state)
+    }
+
+    @Test
+    fun codeDrivenRoundTripReturnsToFront() {
+        val h = holder()
+        h.requestFlip()
+        assertEquals(CuteCardState.Flipping, h.state)
+        h.onFlipAnimationFinished()
+        h.onSettled()
+        assertEquals(CuteCardState.Back, h.state)
+        h.requestUnflip()
+        assertEquals(CuteCardState.UnFlipping, h.state)
+        h.onUnflipAnimationFinished()
+        assertEquals(CuteCardState.Front, h.state)
+    }
+
+    @Test
+    fun requestFlipDoesNotConfirmFromBack() {
+        val h = holder()
+        h.requestFlip(); h.onFlipAnimationFinished(); h.onSettled()
+        h.requestFlip()
+        assertFalse(h.state is CuteCardState.ExitingConfirm)
     }
 }
