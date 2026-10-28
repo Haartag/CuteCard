@@ -4,6 +4,12 @@ All notable changes to CuteCard are documented here. The format follows [Keep a 
 
 ## [Unreleased]
 
+## [0.5.1] - 2026-10-28
+
+### Fixed
+
+- `DismissButtonStyle.containerColor` is now drawn as the built-in dismiss button's background, clipped to its `shape`. The default stays transparent, so the default look is unchanged.
+
 ## [0.5.0] - 2026-10-28
 
 ### Breaking changes
@@ -37,13 +43,10 @@ All notable changes to CuteCard are documented here. The format follows [Keep a 
 
 - The README now covers installation, quick start and key features. The full API reference lives in `documentation/CuteCard_Documentation.md`.
 
-### Known issues
-
-- `DismissButtonStyle.containerColor` is not drawn by the built-in buttons.
-
 ## Earlier versions
 
 Changes before 0.5.0 are recorded in the git history.
 
-[Unreleased]: https://github.com/Haartag/CuteCard/compare/v0.5.0...HEAD
+[Unreleased]: https://github.com/Haartag/CuteCard/compare/v0.5.1...HEAD
+[0.5.1]: https://github.com/Haartag/CuteCard/compare/v0.5.0...v0.5.1
 [0.5.0]: https://github.com/Haartag/CuteCard/compare/v0.4.0...v0.5.0
