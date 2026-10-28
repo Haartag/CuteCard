@@ -17,6 +17,10 @@ One component. Two exercise modes. Fully customisable. Zero hardcoded strings.
   - [CuteCardContent](#cutecardcontent)
   - [CuteCardConfig](#cutecardconfig)
   - [CuteCardStyle](#cutecardstyle)
+    - [Per-side word text style](#per-side-word-text-style)
+    - [Word placement](#word-placement)
+    - [Shadows](#shadows)
+    - [GhostStackStyle](#ghoststackstyle)
   - [CuteCardLabels](#cutecardlabels)
   - [CuteCardDefaults](#cutecarddefaults)
   - [Enums](#enums)
@@ -27,10 +31,12 @@ One component. Two exercise modes. Fully customisable. Zero hardcoded strings.
   - [Labels and localisation](#labels-and-localisation)
 - [Flip callbacks](#flip-callbacks)
 - [Unflip button](#unflip-button)
+- [Dismiss button](#dismiss-button)
 - [Dismiss from your own controls](#dismiss-from-your-own-controls)
 - [Programmatic flip](#programmatic-flip)
 - [Audio playback](#audio-playback)
 - [Ghost stack](#ghost-stack)
+  - [Ghost card size and opacity](#ghost-card-size-and-opacity)
 - [Responsibility split](#responsibility-split)
 - [Architecture overview](#architecture-overview)
 
@@ -344,19 +350,7 @@ Three settings control where the word sits. Both faces follow them, so the word 
 | `reservedBottomHeight` | `0.dp` | Row at the bottom of the word area that the word never enters — size it to the audio button |
 | `wordVerticalPosition` | `Raised` | `Raised`: free space split 40 / 60 above / below the word, so it sits slightly above centre. `Centered`: the word is exactly centred in the word area |
 
-The word area is the card minus `contentPadding`, minus the two reserved rows. Reserved rows are measured from inside the padding. The built-in audio button is about 48dp tall and sits inside the padding, so `reservedBottomHeight = 48.dp` clears it; the corner icons sit flush with the card edge, so they need less than their own height.
-
-```
-┌────────────────────────┐
-│ EN                  ↺  │  ← reservedTopHeight
-│ ┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄ │
-│                        │
-│         hierro         │  ← word area
-│                        │
-│ ┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄ │
-│      [ ▶ Listen ]      │  ← reservedBottomHeight
-└────────────────────────┘
-```
+The word area is the card minus `contentPadding`, minus the two reserved rows. Reserved rows are measured from inside the padding. The built-in audio button is about 48dp tall and sits inside the padding, so `reservedBottomHeight = 48.dp` clears it; the corner icons sit flush with the card edge, so they need less than their own height. From top to bottom the card reads: top reserved row (language pill, corner icon), word area, bottom reserved row (audio button).
 
 With `Centered`, phonetics and the word class hang **below** the word without moving it. The word may shrink (auto-size) so they still fit. The audio button is an overlay and never moves the word either. With equal top and bottom rows, the word sits at the same spot on both faces:
 
@@ -367,7 +361,6 @@ style = CuteCardDefaults.style().copy(
     wordVerticalPosition = WordVerticalPosition.Centered
 )
 ```
-
 
 #### Shadows
 
@@ -462,6 +455,8 @@ data class DismissButtonStyle(
     val containerColor: Color = Color.Transparent
 )
 ```
+
+`contentColor` also tints the built-in rewind icon. `containerColor` is currently not drawn by either built-in button.
 
 #### `WordClassPillStyle`
 
@@ -603,7 +598,15 @@ enum class ExitAnimation {
 }
 ```
 
-Valid pairings:
+| Value | Effect |
+|---|---|
+| `SlideUp` | Card slides up and fades out |
+| `SlideDown` | Card slides down and fades out |
+| `ScaleFade` | Card scales up slightly then fades out |
+| `Fade` | Card fades out in place |
+| `None` | Card disappears instantly (no animation) |
+
+`confirmExit` and `dismissExit` are independent. Valid pairings:
 
 | Exit type | Recommended values |
 |---|---|
@@ -669,6 +672,8 @@ CuteCard(
     )
 )
 ```
+
+`darkStyle()` changes surface and text colors only — the shadows stay black. If your dark palette needs different shadows, set `shadows` from it (see [Shadows](#shadows)).
 
 ### Animation
 
@@ -806,7 +811,57 @@ CuteCard(
 
 ### Unflip animation
 
-The reverse flip uses the same duration as the forward flip (`flipDurationMs`) and mirrors its easing curve. Shadow elevation is suppressed for the duration of the animation, matching the forward flip behaviour.
+The reverse flip uses the same duration as the forward flip (`flipDurationMs`) and mirrors its easing curve. The active card's shadows are hidden for the duration of the animation, matching the forward flip.
+
+---
+
+## Dismiss button
+
+The built-in "I don't know" button sits below the card and is shown while the back face is visible.
+
+### Custom dismiss button
+
+The `dismissButton` slot accepts any composable. The `onClick` lambda passed to it **must be called** to trigger the dismiss animation.
+
+```kotlin
+// Icon button
+CuteCard(
+    content = content,
+    onKnown = { ... },
+    onUnknown = { ... },
+    dismissButton = { onClick ->
+        IconButton(onClick = onClick) {
+            Icon(Icons.Default.Close, contentDescription = "I don't know")
+        }
+    }
+)
+
+// Image button
+CuteCard(
+    content = content,
+    onKnown = { ... },
+    onUnknown = { ... },
+    dismissButton = { onClick ->
+        Image(
+            painter = painterResource(Res.drawable.thumbs_down),
+            contentDescription = "I don't know",
+            modifier = Modifier.clickable(onClick = onClick)
+        )
+    }
+)
+```
+
+### Disabling the dismiss button
+
+Pass `null` to remove the dismiss button and its reserved space entirely. The card can then only be confirmed as known, so `onUnknown` is never called and can be omitted:
+
+```kotlin
+CuteCard(
+    content = content,
+    onKnown = { ... },
+    dismissButton = null
+)
+```
 
 ---
 
@@ -1016,11 +1071,11 @@ CuteCard(
 | 2 | 1 |
 | ≤ 1 | 0 |
 
-When `null`, the component behaves exactly as before — no behavior change unless you opt in by passing the count.
+When `null`, the full two-card stack is always shown — the stack only shrinks when you pass the count.
 
 ### Ghost card size and opacity
 
-`ghostStackStyle` on `CuteCardStyle` controls the ghost cards' geometry and opacity. Step 1 is the card directly behind the active one, step 2 the card behind that. Every field defaults to today's look.
+`ghostStackStyle` on `CuteCardStyle` controls the ghost cards' geometry and opacity. Step 1 is the card directly behind the active one, step 2 the card behind that. Every field defaults to the built-in look.
 
 | Field | Default | Controls |
 |---|---|---|
@@ -1056,6 +1111,7 @@ The offset is drawn outside the card's layout bounds, so the stack peeks into th
 | Tutorial / onboarding pacing and choreography | Consumer |
 | Audio idle / playing visual states (built-in button) | Library |
 | Custom audio / dismiss / unflip controls | Consumer |
+| Style values per theme (light / dark colors, shadows) | Consumer |
 | Audio playback | Consumer |
 | `isPlaying` state | Consumer |
 | `remainingCards` state | Consumer |
@@ -1072,7 +1128,7 @@ The offset is drawn outside the card's layout bounds, so the stack peeks into th
   CuteCard.kt
   CuteCardContent.kt
   CuteCardConfig.kt
-  CuteCardStyle.kt
+  CuteCardStyle.kt       ← CuteCardStyle plus CardShadow / CardShadows, GhostStackStyle and the pill / button styles
   CuteCardLabels.kt
   CuteCardDefaults.kt
   CuteCardState.kt       ← hoisted state: dismiss(), canDismiss
@@ -1097,7 +1153,7 @@ The offset is drawn outside the card's layout bounds, so the stack peeks into th
     UnflipButton.kt        ← built-in rewind icon button (above card or in its top-right corner)
     GhostStack.kt          ← decorative cards behind the active card; count adapts to remainingCards
   /theme
-    CuteCardTokens.kt      ← internal constants (sizes, radii, durations)
+    CuteCardTokens.kt      ← internal constants (sizes, radii, durations, default top-card shadows)
 ```
 
 State flow:
