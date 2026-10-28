@@ -12,12 +12,14 @@ CuteCard handles the full interaction lifecycle of a single flashcard - 3D flip 
 ## Features
 
 - 3D card flip (horizontal or vertical axis)
-- Unflip button — lets the user flip back to the front face without dismissing
+- Unflip button — flip back to the front face without dismissing, above the card or in its corner
+- Dismiss from anywhere — hide the built-in "I don't know" button, or call `dismiss()` from your own control
 - Programmatic flip — drive the card from code for onboarding and tutorials, with taps safely disabled while audio stays usable
 - Confirm and dismiss exit animations (slide, scale-fade, fade)
 - Two exercise modes — see the word, recall the translation, or vice versa
 - Ghost card stack for a physical deck feel
-- Audio button with idle/playing visual states
+- Audio button with idle/playing visual states, or your own custom button
+- Configurable word placement — padding, reserved rows, raised or exactly centred
 - Language indicator pill — small 2-3 character code (e.g. "EN", "ES") in the card corner
 - Fully customizable: colors, shapes, typography, labels, timing
 - Built-in dark mode style
@@ -65,7 +67,7 @@ CuteCardContent(
     translation = "to run",    // required — the translation
     phonetics = "[ko.ˈrer]",  // optional — hides phonetics row when null
     wordClass = "verb",        // optional — hides word class pill when null
-    audioUrl = "https://...",  // optional — hides audio button when null
+    audioUrl = "https://...",  // optional — never read by the library; use it in onAudioRequested
     sourceLanguage = "ES",     // optional — language code shown on the word face (null = hidden)
     targetLanguage = "EN"      // optional — language code shown on the translation face (null = hidden)
 )
@@ -109,6 +111,7 @@ CuteCardConfig(
     flipDirection = FlipDirection.Horizontal, // or Vertical
     confirmExit = ExitAnimation.SlideUp,     // animation when marked as known
     dismissExit = ExitAnimation.SlideDown,   // animation when marked as unknown
+    unflipButtonPosition = UnflipButtonPosition.None, // or AboveCard / CardTopEnd
 )
 ```
 
@@ -198,6 +201,7 @@ style = CuteCardDefaults.darkStyle()
 | `ghostCardBackgroundColor` | Stack cards behind the active card |
 | `cardBorderColor` | Optional card stroke (transparent = none) |
 | `wordTextStyle` / `wordTextColor` | Primary word / translation typography |
+| `wordAutoSizeMinFontSize` | Smallest size the word shrinks to when it doesn't fit |
 | `phoneticsTextStyle` / `phoneticsTextColor` | Phonetics row typography |
 | `wordClassPillStyle` | Word class chip — text, colors, shape |
 | `audioButtonStyle` | Audio button — icon colors, stroke widths, background/text colors per state, shape, typography |
@@ -469,7 +473,7 @@ CuteCard(content = content, forceFlipped = demoFlipped, onKnown = { ... }, onUnk
 
 It is a **target, not an event** — a value set mid-animation is applied once the card is eligible, so your tutorial's delays never have to wait out `flipDurationMs` or `settledLockDurationMs`. Reset it to `null` when the tutorial ends: a target left at `true` flips the next card too, and `false` pins the card to its front face.
 
-Because a stray tap on the back face would mark the card known and remove it mid-tutorial, `cardActionsEnabled` defaults to `forceFlipped == null`. While it is `false`, tap-to-flip, tap-to-confirm, dismiss and unflip are inert — but the dismiss and unflip buttons stay visible for coach marks, and **the audio button keeps working**. Pass `cardActionsEnabled = true` to allow code-driven flips and user taps together.
+Because a stray tap on the back face would mark the card known and remove it mid-tutorial, `cardActionsEnabled` defaults to `forceFlipped == null`. While it is `false`, tap-to-flip, tap-to-confirm, dismiss (including `cardState.dismiss()`) and unflip are inert — but the dismiss and unflip buttons stay visible for coach marks, and **the audio button keeps working**. Pass `cardActionsEnabled = true` to allow code-driven flips and user taps together.
 
 See the [full documentation](documentation/CuteCard_Documentation.md#programmatic-flip) for details.
 

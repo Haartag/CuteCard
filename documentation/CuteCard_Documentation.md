@@ -12,18 +12,20 @@ One component. Two exercise modes. Fully customisable. Zero hardcoded strings.
 - [Interaction model](#interaction-model)
 - [Exercise modes](#exercise-modes)
 - [API reference](#api-reference)
-  - [CuteCard](#flashcard-composable)
-  - [CuteCardContent](#flashcardcontent)
-  - [CuteCardConfig](#flashcardconfig)
-  - [CuteCardStyle](#flashcardstyle)
-  - [CuteCardLabels](#flashcardlabels)
-  - [CuteCardDefaults](#flashcarddefaults)
+  - [CuteCard](#cutecard-composable)
+  - [CuteCardState](#cutecardstate)
+  - [CuteCardContent](#cutecardcontent)
+  - [CuteCardConfig](#cutecardconfig)
+  - [CuteCardStyle](#cutecardstyle)
+  - [CuteCardLabels](#cutecardlabels)
+  - [CuteCardDefaults](#cutecarddefaults)
   - [Enums](#enums)
 - [Customisation](#customisation)
   - [Appearance](#appearance)
   - [Dark mode](#dark-mode)
   - [Animation](#animation)
   - [Labels and localisation](#labels-and-localisation)
+- [Flip callbacks](#flip-callbacks)
 - [Unflip button](#unflip-button)
 - [Dismiss from your own controls](#dismiss-from-your-own-controls)
 - [Programmatic flip](#programmatic-flip)
@@ -136,7 +138,7 @@ CuteCard(
 )
 ```
 
-**Front face:** word (`hierro`), phonetics, word class. Tap to flip.  
+**Front face:** word (`hierro`) only. Tap to flip.  
 **Back face:** translation (`iron`), phonetics, word class, audio button. Tap to mark as known.  
 **Below card (back only):** "I don't know" button.
 
@@ -208,6 +210,27 @@ fun CuteCard(
 
 ---
 
+### `CuteCardState`
+
+Hoisted state for driving the card from your own controls. See [Dismiss from your own controls](#dismiss-from-your-own-controls).
+
+```kotlin
+@Composable
+fun rememberCuteCardState(): CuteCardState
+
+class CuteCardState {
+    val canDismiss: Boolean   // observable — true when dismiss() would take effect
+    fun dismiss()             // plays dismissExit, then calls onUnknown
+}
+```
+
+| Member | Description |
+|---|---|
+| `canDismiss` | `true` when the card rests on either face and `cardActionsEnabled` is `true`. `false` while flipping, settling or exiting |
+| `dismiss()` | Marks the card as unknown, exactly like the built-in dismiss button, but from either face. Ignored when `canDismiss` is `false` |
+
+---
+
 ### `CuteCardContent`
 
 One instance per card. Build from any data source — database, API, hardcoded list.
@@ -218,7 +241,7 @@ data class CuteCardContent(
     val translation: String,
     val phonetics: String? = null,        // null = hidden
     val wordClass: String? = null,        // null = hidden
-    val audioUrl: String? = null,         // null = audio button hidden
+    val audioUrl: String? = null,         // never read by the library — for your onAudioRequested
     val sourceLanguage: String? = null,   // null = hidden
     val targetLanguage: String? = null    // null = hidden
 )
@@ -280,6 +303,7 @@ data class CuteCardStyle(
     val cardBorderColor: Color,
     val wordTextStyle: TextStyle,
     val wordTextColor: Color,
+    val wordAutoSizeMinFontSize: TextUnit,  // smallest size the word shrinks to when it doesn't fit
     val phoneticsTextStyle: TextStyle,
     val phoneticsTextColor: Color,
     val wordClassPillStyle: WordClassPillStyle,
@@ -436,7 +460,7 @@ data class CuteCardLabels(
 )
 ```
 
-`unflipButtonLabel` is used as the accessibility content description for the rewind icon — it is never shown as visible text. All other content descriptions are read by TalkBack (Android) and VoiceOver (iOS). Tailor them to your app's voice.
+`unflipButtonLabel` is used as the accessibility content description for the rewind icon — it is never shown as visible text. Button labels apply to the built-in buttons only; a custom `dismissButton`, `unflipButton` or `audioButton` supplies its own text. All other content descriptions are read by TalkBack (Android) and VoiceOver (iOS). Tailor them to your app's voice.
 
 ---
 
@@ -771,7 +795,7 @@ A stray tap on the back face means "I know it" and would remove the card from th
 
 While `cardActionsEnabled` is `false`:
 
-- tap-to-flip, tap-to-confirm, the dismiss button and the unflip button are all inert
+- tap-to-flip, tap-to-confirm, the dismiss button, the unflip button and `cardState.dismiss()` are all inert
 - the dismiss and unflip buttons **stay visible**, so a coach mark can point at them
 - **the audio button keeps working** — `cardActionsEnabled` gates only the actions that advance the card, and audio does not
 
@@ -862,7 +886,7 @@ CuteCard(
 )
 ```
 
-**Auto-play on flip** — if your app should play audio automatically when the card flips, trigger `playAudio()` inside `onKnown`'s inverse or observe the card state. Since `onAudioRequested` is your callback, you can call it from anywhere.
+**Auto-play on flip** — call `playAudio()` from `onFlipped`, which fires once the back face is revealed. See [Flip callbacks](#flip-callbacks).
 
 **Hide the audio button** — pass `onAudioRequested = null`. No button is rendered and no empty space is left behind.
 
@@ -924,10 +948,10 @@ When `null`, the component behaves exactly as before — no behavior change unle
 | Exit animations | Library |
 | Settled lock (accidental tap prevention) | Library |
 | Unflip button visibility and animation | Library |
-| Custom dismiss control placement | Consumer |
 | Reconciling `forceFlipped` towards the target face | Library |
 | Tutorial / onboarding pacing and choreography | Consumer |
-| Audio idle / playing visual states | Library |
+| Audio idle / playing visual states (built-in button) | Library |
+| Custom audio / dismiss / unflip controls | Consumer |
 | Audio playback | Consumer |
 | `isPlaying` state | Consumer |
 | `remainingCards` state | Consumer |
@@ -963,10 +987,10 @@ When `null`, the component behaves exactly as before — no behavior change unle
     CardFront.kt
     CardBack.kt
     WordArea.kt            ← shared word placement for both faces
-    AudioButton.kt
+    AudioButton.kt         ← built-in audio button (default for the audioButton slot)
     DismissButton.kt       ← "I don't know" text button, below card
     UnflipButton.kt        ← built-in rewind icon button (above card or in its top-right corner)
-    GhostStack.kt           ← two static cards behind the active card
+    GhostStack.kt          ← decorative cards behind the active card; count adapts to remainingCards
   /theme
     CuteCardTokens.kt      ← internal constants (sizes, radii, durations)
 ```
