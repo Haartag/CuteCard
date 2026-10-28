@@ -45,7 +45,7 @@ The library is published to Maven Central. Add the dependency to the common sour
 kotlin {
     sourceSets {
         commonMain.dependencies {
-            implementation("site.llinsoft:cutecard:0.4.0")
+            implementation("site.llinsoft:cutecard:0.5.0")
         }
     }
 }
