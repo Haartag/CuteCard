@@ -51,7 +51,7 @@ The library is published to Maven Central. Add the dependency to the common sour
 kotlin {
     sourceSets {
         commonMain.dependencies {
-            implementation("site.llinsoft:cutecard:0.5.0")
+            implementation("site.llinsoft:cutecard:0.5.1")
         }
     }
 }
@@ -456,7 +456,7 @@ data class DismissButtonStyle(
 )
 ```
 
-`contentColor` also tints the built-in rewind icon. `containerColor` is currently not drawn by either built-in button.
+`containerColor` fills the dismiss button's `shape` (transparent by default). `contentColor` also tints the built-in rewind icon; the rewind icon has no background.
 
 #### `WordClassPillStyle`
 

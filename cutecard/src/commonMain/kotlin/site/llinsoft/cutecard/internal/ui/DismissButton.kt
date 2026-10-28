@@ -1,5 +1,6 @@
 package site.llinsoft.cutecard.internal.ui
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Box
@@ -40,6 +41,7 @@ internal fun DismissButton(
         modifier = modifier
             .sizeIn(minWidth = 48.dp, minHeight = 48.dp)
             .clip(style.shape)
+            .background(style.containerColor)
             .clickable(
                 interactionSource = interactionSource,
                 indication = ripple(bounded = true),
