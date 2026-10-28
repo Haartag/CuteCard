@@ -13,7 +13,7 @@ import androidx.compose.ui.graphics.GraphicsLayerScope
 import androidx.compose.ui.graphics.graphicsLayer
 import site.llinsoft.cutecard.CuteCardConfig
 import site.llinsoft.cutecard.FlipDirection
-import site.llinsoft.cutecard.internal.state.CuteCardState
+import site.llinsoft.cutecard.internal.state.CuteCardPhase
 import site.llinsoft.cutecard.internal.state.isBackVisible
 
 /**
@@ -27,12 +27,12 @@ import site.llinsoft.cutecard.internal.state.isBackVisible
  * The caller applies these to the front and back composables respectively.
  *
  * [onFlipFinished] is called once the full flip animation completes —
- * the state holder uses this to transition from [CuteCardState.Flipping]
- * to [CuteCardState.Settling].
+ * the state holder uses this to transition from [CuteCardPhase.Flipping]
+ * to [CuteCardPhase.Settling].
  *
  * [onUnflipFinished] is called once the reverse animation completes —
- * the state holder uses this to transition from [CuteCardState.UnFlipping]
- * to [CuteCardState.Front].
+ * the state holder uses this to transition from [CuteCardPhase.UnFlipping]
+ * to [CuteCardPhase.Front].
  *
  * @param state Current card state. Drives when the flip starts.
  * @param config Consumer config. Provides duration and direction.
@@ -41,13 +41,13 @@ import site.llinsoft.cutecard.internal.state.isBackVisible
  */
 @Composable
 internal fun rememberFlipTransition(
-    state: CuteCardState,
+    state: CuteCardPhase,
     config: CuteCardConfig,
     onFlipFinished: () -> Unit,
     onUnflipFinished: () -> Unit
 ): FlipTransition {
-    val isFlipped = state is CuteCardState.Flipping || state.isBackVisible
-    val isUnFlipping = state is CuteCardState.UnFlipping
+    val isFlipped = state is CuteCardPhase.Flipping || state.isBackVisible
+    val isUnFlipping = state is CuteCardPhase.UnFlipping
 
     var targetRotation by remember { mutableFloatStateOf(0f) }
 

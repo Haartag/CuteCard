@@ -25,6 +25,7 @@ One component. Two exercise modes. Fully customisable. Zero hardcoded strings.
   - [Animation](#animation)
   - [Labels and localisation](#labels-and-localisation)
 - [Unflip button](#unflip-button)
+- [Dismiss from your own controls](#dismiss-from-your-own-controls)
 - [Programmatic flip](#programmatic-flip)
 - [Audio playback](#audio-playback)
 - [Ghost stack](#ghost-stack)
@@ -101,6 +102,7 @@ Front face — tap card → Back face (full info revealed)
 - Tap card (back) → `onKnown()`
 - Tap unflip icon → Front face (reverse flip, card stays in deck)
 - Tap "I don't know" → `onUnknown()`
+- Call `cardState.dismiss()` from any control (either face) → `onUnknown()`
 
 | Action | Result |
 |---|---|
@@ -108,6 +110,7 @@ Front face — tap card → Back face (full info revealed)
 | Tap card (back, after lock) | Triggers confirm exit animation → calls `onKnown` |
 | Tap unflip button | Plays the flip animation in reverse → returns to front face. Card stays in the deck |
 | Tap dismiss button | Triggers dismiss exit animation → calls `onUnknown` |
+| Call `cardState.dismiss()` | Same as the dismiss button, but also works on the front face. See [Dismiss from your own controls](#dismiss-from-your-own-controls) |
 | Tap audio button | Calls `onAudioRequested`. Does not flip the card |
 | Any of the above, with `cardActionsEnabled = false` | Ignored. The dismiss and unflip buttons stay visible but inert. **The audio button keeps working** |
 | Set `forceFlipped` | Flips the card from code without a tap. See [Programmatic flip](#programmatic-flip) |
@@ -165,6 +168,7 @@ fun CuteCard(
     onKnown: () -> Unit,
     onUnknown: () -> Unit = {},
     modifier: Modifier = Modifier,
+    state: CuteCardState = rememberCuteCardState(),
     config: CuteCardConfig = CuteCardConfig(),
     style: CuteCardStyle = CuteCardDefaults.style(),
     labels: CuteCardLabels = CuteCardLabels(),
@@ -186,13 +190,14 @@ fun CuteCard(
 | `onKnown` | `() -> Unit` | Called after confirm exit animation completes. Advance the deck here |
 | `onUnknown` | `() -> Unit` | Called after dismiss exit animation completes. Re-queue or advance here. Defaults to a no-op — omit it when `dismissButton = null` |
 | `modifier` | `Modifier` | Applied to the root layout |
+| `state` | `CuteCardState` | Hoisted card state. Pass one from `rememberCuteCardState()` to dismiss the card from your own controls. See [Dismiss from your own controls](#dismiss-from-your-own-controls) |
 | `config` | `CuteCardConfig` | Behavior and animation settings |
 | `style` | `CuteCardStyle` | Visual appearance |
 | `labels` | `CuteCardLabels` | All user-facing strings |
 | `isPlaying` | `Boolean` | Drives audio button visual state. Owned by the consumer |
 | `remainingCards` | `Int?` | Number of cards left in the deck including this one. `null` (default) = always show two ghost cards. Pass the count to shrink the stack: `2` → one ghost, `1` → no ghost |
 | `forceFlipped` | `Boolean?` | Flips the card from code. `null` (default) = user-driven, `true` = show back face, `false` = show front face. A **target**, not a one-shot event — see [Programmatic flip](#programmatic-flip) |
-| `cardActionsEnabled` | `Boolean` | When `false`, tap-to-flip, tap-to-confirm, the dismiss button and the unflip button are inert. **Audio is unaffected.** Defaults to `forceFlipped == null` |
+| `cardActionsEnabled` | `Boolean` | When `false`, tap-to-flip, tap-to-confirm, the dismiss button, the unflip button and `CuteCardState.dismiss()` are inert. **Audio is unaffected.** Defaults to `forceFlipped == null` |
 | `onAudioRequested` | `(() -> Unit)?` | Called on audio button tap. `null` hides the button entirely |
 | `onFlipped` | `(() -> Unit)?` | Called when the back face becomes interactive (flip animation done + settle lock expired). `null` = no callback |
 | `onFlippedBack` | `(() -> Unit)?` | Called when the user taps the back face to confirm (before exit animation). `null` = no callback |
@@ -622,6 +627,47 @@ The reverse flip uses the same duration as the forward flip (`flipDurationMs`) a
 
 ---
 
+## Dismiss from your own controls
+
+The `dismissButton` slot always sits below the card. To put an "I don't know" control **anywhere** — a toolbar, a bottom bar, next to your own "I know it" button — hoist the card state with `rememberCuteCardState()` and call `dismiss()` from any button:
+
+```kotlin
+val cardState = rememberCuteCardState()
+
+Scaffold(
+    bottomBar = {
+        Button(
+            onClick = { cardState.dismiss() },
+            enabled = cardState.canDismiss
+        ) { Text("I don't know") }
+    }
+) {
+    CuteCard(
+        content = content,
+        state = cardState,
+        dismissButton = null,          // hide the built-in button
+        onKnown = { ... },
+        onUnknown = { ... }
+    )
+}
+```
+
+`dismiss()` behaves exactly like the built-in button: it plays `dismissExit`, then calls `onUnknown`.
+
+| | Built-in `dismissButton` | `cardState.dismiss()` |
+|---|---|---|
+| Placement | Below the card | Anywhere |
+| Front face | Hidden | **Works** — the card exits without flipping |
+| Back face (after settle lock) | Works | Works |
+| While flipping, settling or exiting | Ignored | Ignored |
+| `cardActionsEnabled = false` | Ignored | Ignored |
+
+`canDismiss` is observable and mirrors those rules, so `enabled = cardState.canDismiss` keeps your button in step with the card.
+
+One `CuteCardState` belongs to one `CuteCard`. It resets with the card whenever `content` changes, so remember it once for the whole deck.
+
+---
+
 ## Programmatic flip
 
 `forceFlipped` flips the card from code instead of waiting for a tap. It exists for **onboarding and tutorial demonstrations** — showing a new user how the card works before handing them control.
@@ -775,6 +821,7 @@ When `null`, the component behaves exactly as before — no behavior change unle
 | Exit animations | Library |
 | Settled lock (accidental tap prevention) | Library |
 | Unflip button visibility and animation | Library |
+| Custom dismiss control placement | Consumer |
 | Reconciling `forceFlipped` towards the target face | Library |
 | Tutorial / onboarding pacing and choreography | Consumer |
 | Audio idle / playing visual states | Library |
@@ -797,11 +844,12 @@ When `null`, the component behaves exactly as before — no behavior change unle
   CuteCardStyle.kt
   CuteCardLabels.kt
   CuteCardDefaults.kt
+  CuteCardState.kt       ← hoisted state: dismiss(), canDismiss
 
 /internal             ← never imported by the consumer
   /state
-    CuteCardState.kt       ← sealed class: Front, Flipping, UnFlipping, Settling, Back,
-                              ExitingConfirm, ExitingDismiss, Gone
+    CuteCardPhase.kt       ← sealed class: Front, Flipping, UnFlipping, Settling, Back,
+                              ExitingConfirm, ExitingDismiss, ExitingDismissFromFront, Gone
     CuteCardStateHolder.kt ← state machine, settle timer flag
   /animation
     CuteCardAnimator.kt    ← AnimationSpec builders from config values (flipSpec, unflipSpec, exit specs)
@@ -823,6 +871,7 @@ State flow:
 
 `Front → Flipping → Settling → Back → ExitingConfirm → Gone`  
 `Back → UnFlipping → Front` (unflip)  
-`Back → ExitingDismiss → Gone` (dismiss)
+`Back → ExitingDismiss → Gone` (dismiss)  
+`Front → ExitingDismissFromFront → Gone` (`cardState.dismiss()` from the front)
 
 The lib owns ephemeral UI state (flip progress, unflip progress, settle lock, exit animation). The consumer owns everything else. No responsibility crosses that boundary.

@@ -2,9 +2,8 @@ package site.llinsoft.cutecard
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.remember
+import androidx.compose.runtime.SideEffect
 import androidx.compose.ui.Modifier
-import site.llinsoft.cutecard.internal.state.CuteCardStateHolder
 import site.llinsoft.cutecard.internal.ui.CuteCardLayout
 import site.llinsoft.cutecard.internal.ui.DismissButton
 import site.llinsoft.cutecard.internal.ui.UnflipButton
@@ -40,6 +39,7 @@ import site.llinsoft.cutecard.internal.ui.UnflipButton
  * - Tap card (front) → flip to back
  * - Tap card (back, after settle delay) → mark as known → [onKnown]
  * - Tap dismiss button → mark as unknown → [onUnknown]
+ * - Call [CuteCardState.dismiss] from any control → mark as unknown → [onUnknown]
  * - Tap audio button → [onAudioRequested] (consumer handles playback)
  * - Set [forceFlipped] → flip the card from code (onboarding / tutorials)
  *
@@ -50,6 +50,8 @@ import site.llinsoft.cutecard.internal.ui.UnflipButton
  * @param onUnknown Called after the dismiss exit animation completes.
  * Re-queue the card or advance here. Defaults to a no-op, so it
  * can be omitted when [dismissButton] is `null`.
+ * @param state Hoisted card state. Pass one from [rememberCuteCardState] to drive the
+ * card from your own controls, e.g. a dismiss button placed anywhere.
  * @param config Behavior and animation settings. See [CuteCardConfig].
  * @param style Visual appearance. See [CuteCardStyle] and [CuteCardDefaults].
  * @param labels All user-facing strings. See [CuteCardLabels].
@@ -70,8 +72,8 @@ import site.llinsoft.cutecard.internal.ui.UnflipButton
  * [CuteCardConfig.settledLockDurationMs].
  * Intended for onboarding and tutorial demonstrations.
  * @param cardActionsEnabled Whether the user can drive the card. When `false`, tap-to-flip,
- * tap-to-confirm, the dismiss button and the unflip button are all
- * inert — the buttons stay visible so a tutorial can point at them.
+ * tap-to-confirm, the dismiss button, the unflip button and
+ * [CuteCardState.dismiss] are all inert — the buttons stay visible so a tutorial can point at them.
  * **Audio playback is unaffected** and the audio button keeps
  * working; this gates only the actions that advance the card.
  * Defaults to `forceFlipped == null`, so driving the card from
@@ -123,6 +125,7 @@ fun CuteCard(
     onKnown: () -> Unit,
     onUnknown: () -> Unit = {},
     modifier: Modifier = Modifier,
+    state: CuteCardState = rememberCuteCardState(),
     config: CuteCardConfig = CuteCardConfig(),
     style: CuteCardStyle = CuteCardDefaults.style(),
     labels: CuteCardLabels = CuteCardLabels(),
@@ -138,14 +141,16 @@ fun CuteCard(
     },
     unflipButton: (@Composable (onClick: () -> Unit) -> Unit)? = null
 ) {
-    val stateHolder = remember { CuteCardStateHolder() }
+    SideEffect {
+        state.actionsEnabled = cardActionsEnabled
+    }
 
     LaunchedEffect(content) {
-        stateHolder.reset()
+        state.holder.reset()
     }
 
     CuteCardLayout(
-        stateHolder = stateHolder,
+        stateHolder = state.holder,
         content = content,
         config = config,
         style = style,

@@ -30,7 +30,7 @@ import site.llinsoft.cutecard.CuteCardLabels
 import site.llinsoft.cutecard.CuteCardStyle
 import site.llinsoft.cutecard.internal.animation.exitModifier
 import site.llinsoft.cutecard.internal.animation.rememberFlipTransition
-import site.llinsoft.cutecard.internal.state.CuteCardState
+import site.llinsoft.cutecard.internal.state.CuteCardPhase
 import site.llinsoft.cutecard.internal.state.CuteCardStateHolder
 import site.llinsoft.cutecard.internal.state.isBackVisible
 import site.llinsoft.cutecard.internal.state.isInteractionLocked
@@ -72,7 +72,7 @@ internal fun CuteCardLayout(
     modifier: Modifier = Modifier
 ) {
     val state = stateHolder.state
-    val frontFaceActive = state is CuteCardState.Front
+    val frontFaceActive = state is CuteCardPhase.Front
     val userInteractive = cardActionsEnabled && !state.isInteractionLocked
     val ghostCount = when {
         remainingCards == null || remainingCards >= 3 -> 2
@@ -93,8 +93,8 @@ internal fun CuteCardLayout(
 
     LaunchedEffect(state) {
         when (state) {
-            CuteCardState.Settling       -> onFlipped?.invoke()
-            CuteCardState.ExitingConfirm -> onFlippedBack?.invoke()
+            CuteCardPhase.Settling       -> onFlipped?.invoke()
+            CuteCardPhase.ExitingConfirm -> onFlippedBack?.invoke()
             else                          -> {}
         }
     }
@@ -106,8 +106,8 @@ internal fun CuteCardLayout(
 
     LaunchedEffect(forceFlipped, state) {
         when {
-            forceFlipped == true && state is CuteCardState.Front -> stateHolder.requestFlip()
-            forceFlipped == false && state is CuteCardState.Back -> stateHolder.requestUnflip()
+            forceFlipped == true && state is CuteCardPhase.Front -> stateHolder.requestFlip()
+            forceFlipped == false && state is CuteCardPhase.Back -> stateHolder.requestUnflip()
             else -> Unit
         }
     }
@@ -128,8 +128,9 @@ internal fun CuteCardLayout(
         config = config,
         onExitFinished = {
             when (stateHolder.state) {
-                CuteCardState.ExitingConfirm -> onKnown()
-                CuteCardState.ExitingDismiss -> onUnknown()
+                CuteCardPhase.ExitingConfirm -> onKnown()
+                CuteCardPhase.ExitingDismiss,
+                CuteCardPhase.ExitingDismissFromFront -> onUnknown()
                 else -> {}
             }
             stateHolder.onExitAnimationFinished()
@@ -141,7 +142,7 @@ internal fun CuteCardLayout(
 
     var shadowElevation by remember { mutableStateOf(style.cardElevation) }
     LaunchedEffect(state) {
-        if (state is CuteCardState.Flipping || state is CuteCardState.UnFlipping) {
+        if (state is CuteCardPhase.Flipping || state is CuteCardPhase.UnFlipping) {
             delay(50)
             shadowElevation = 0.dp
             delay((config.flipDurationMs - 100).toLong().coerceAtLeast(0))

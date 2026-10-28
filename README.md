@@ -330,6 +330,27 @@ CuteCard(
 )
 ```
 
+### Dismiss button anywhere
+
+To place your own "I don't know" control anywhere on screen, hoist the card state and call `dismiss()`. It works from both faces, plays the dismiss exit and calls `onUnknown`. `canDismiss` tells your button when the card accepts it — `false` while flipping, settling, exiting, or when `cardActionsEnabled = false`:
+
+```kotlin
+val cardState = rememberCuteCardState()
+
+CuteCard(
+    content = content,
+    state = cardState,
+    dismissButton = null,
+    onKnown = { ... },
+    onUnknown = { ... }
+)
+
+Button(
+    onClick = { cardState.dismiss() },
+    enabled = cardState.canDismiss
+) { Text("I don't know") }
+```
+
 ---
 
 ## Unflip button
