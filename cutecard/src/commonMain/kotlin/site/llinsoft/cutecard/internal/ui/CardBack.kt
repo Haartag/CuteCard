@@ -23,6 +23,7 @@ import site.llinsoft.cutecard.internal.theme.CuteCardTokens
  *
  * @param isPlaying         Whether audio is currently playing. Drives audio button state.
  * @param onAudioRequested  Null hides the audio button entirely.
+ * @param audioButton       Slot drawn at the bottom of the face when [onAudioRequested] is set.
  */
 @Composable
 internal fun CardBack(
@@ -31,6 +32,7 @@ internal fun CardBack(
     labels: CuteCardLabels,
     isPlaying: Boolean,
     onAudioRequested: (() -> Unit)?,
+    audioButton: @Composable (isPlaying: Boolean, onClick: () -> Unit) -> Unit,
     modifier: Modifier = Modifier
 ) {
     Box(modifier = modifier.fillMaxSize()) {
@@ -58,11 +60,8 @@ internal fun CardBack(
         )
 
         if (onAudioRequested != null) {
-            AudioButton(
-                isPlaying = isPlaying,
-                onClick = onAudioRequested,
-                style = style.audioButtonStyle,
-                labels = labels,
+            Box(
+                contentAlignment = Alignment.Center,
                 modifier = Modifier
                     .align(Alignment.BottomCenter)
                     .fillMaxWidth()
@@ -71,7 +70,9 @@ internal fun CardBack(
                         end = style.contentPadding,
                         bottom = style.contentPadding
                     )
-            )
+            ) {
+                audioButton(isPlaying, onAudioRequested)
+            }
         }
 
         if (content.targetLanguage != null) {

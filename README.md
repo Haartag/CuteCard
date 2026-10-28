@@ -276,6 +276,30 @@ CuteCard(
 
 When `isPlaying` is true the button switches to an accent color and thicker stroke. When `onAudioRequested` is `null`, the button is hidden entirely with no empty space left behind.
 
+### Custom audio button
+
+The `audioButton` slot replaces the built-in button with any composable. It receives `isPlaying` to render its state and an `onClick` lambda that **must be called** to request playback — it forwards to `onAudioRequested`. The slot is placed at the bottom of the full-info face, centred, inset by `contentPadding`, and is still shown only when `onAudioRequested` is non-null:
+
+```kotlin
+CuteCard(
+    content = content,
+    onKnown = { ... },
+    isPlaying = isPlaying,
+    onAudioRequested = { player.play(content.audioUrl) },
+    audioButton = { isPlaying, onClick ->
+        IconButton(onClick = onClick) {
+            Icon(
+                Icons.Default.PlayArrow,
+                contentDescription = "Play",
+                tint = if (isPlaying) accentColor else Color.Gray
+            )
+        }
+    }
+)
+```
+
+Like the built-in button, a custom one keeps working when `cardActionsEnabled = false`.
+
 ---
 
 ## Flip callbacks

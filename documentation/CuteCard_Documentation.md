@@ -177,6 +177,7 @@ fun CuteCard(
     forceFlipped: Boolean? = null,
     cardActionsEnabled: Boolean = (forceFlipped == null),
     onAudioRequested: (() -> Unit)? = null,
+    audioButton: @Composable (isPlaying: Boolean, onClick: () -> Unit) -> Unit = { /* built-in audio button */ },
     onFlipped: (() -> Unit)? = null,
     onFlippedBack: (() -> Unit)? = null,
     dismissButton: (@Composable (onClick: () -> Unit) -> Unit)? = { /* built-in text button */ },
@@ -199,6 +200,7 @@ fun CuteCard(
 | `forceFlipped` | `Boolean?` | Flips the card from code. `null` (default) = user-driven, `true` = show back face, `false` = show front face. A **target**, not a one-shot event — see [Programmatic flip](#programmatic-flip) |
 | `cardActionsEnabled` | `Boolean` | When `false`, tap-to-flip, tap-to-confirm, the dismiss button, the unflip button and `CuteCardState.dismiss()` are inert. **Audio is unaffected.** Defaults to `forceFlipped == null` |
 | `onAudioRequested` | `(() -> Unit)?` | Called on audio button tap. `null` hides the button entirely |
+| `audioButton` | `@Composable (isPlaying: Boolean, onClick: () -> Unit) -> Unit` | Slot for a custom audio control. Receives `isPlaying` and an `onClick` that **must be called** to request playback. Defaults to the built-in button. Shown only when `onAudioRequested` is non-null. See [Custom audio button](#custom-audio-button) |
 | `onFlipped` | `(() -> Unit)?` | Called when the back face becomes interactive (flip animation done + settle lock expired). `null` = no callback |
 | `onFlippedBack` | `(() -> Unit)?` | Called when the user taps the back face to confirm (before exit animation). `null` = no callback |
 | `dismissButton` | `(@Composable (onClick: () -> Unit) -> Unit)?` | Slot for a custom dismiss control. The `onClick` lambda **must be called** to trigger the dismiss animation. Defaults to the built-in text button. While hidden (front face), the slot is rendered invisibly so the card height stays constant. `null` removes the button entirely — no space is reserved, and `onUnknown` is never called |
@@ -863,6 +865,30 @@ CuteCard(
 **Auto-play on flip** — if your app should play audio automatically when the card flips, trigger `playAudio()` inside `onKnown`'s inverse or observe the card state. Since `onAudioRequested` is your callback, you can call it from anywhere.
 
 **Hide the audio button** — pass `onAudioRequested = null`. No button is rendered and no empty space is left behind.
+
+### Custom audio button
+
+The `audioButton` slot replaces the built-in button with any composable. It receives `isPlaying` to render its state and an `onClick` lambda that **must be called** to request playback — it forwards to `onAudioRequested`. The slot is placed at the bottom of the full-info face, centred, inset by `contentPadding`, and is still shown only when `onAudioRequested` is non-null:
+
+```kotlin
+CuteCard(
+    content = content,
+    onKnown = { ... },
+    isPlaying = isPlaying,
+    onAudioRequested = { player.play(content.audioUrl) },
+    audioButton = { isPlaying, onClick ->
+        IconButton(onClick = onClick) {
+            Icon(
+                Icons.Default.PlayArrow,
+                contentDescription = "Play",
+                tint = if (isPlaying) accentColor else Color.Gray
+            )
+        }
+    }
+)
+```
+
+Like the built-in button, a custom one keeps working when `cardActionsEnabled = false`.
 
 ---
 

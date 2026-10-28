@@ -45,6 +45,7 @@ import kotlinx.coroutines.delay
  * @param forceFlipped       Code-driven target face. Null leaves the card user-driven.
  * @param cardActionsEnabled Whether user taps drive the card. Does not gate audio.
  * @param onAudioRequested  Null hides the audio button.
+ * @param audioButton       Slot for the audio control on the full-info face.
  * @param onFlipped         Called when the back face becomes interactive (flip + settle done).
  * @param onFlippedBack     Called when the user taps the back face to confirm (before exit starts).
  * @param onKnown           Called after confirm exit animation completes.
@@ -64,6 +65,7 @@ internal fun CuteCardLayout(
     forceFlipped: Boolean?,
     cardActionsEnabled: Boolean,
     onAudioRequested: (() -> Unit)?,
+    audioButton: @Composable (isPlaying: Boolean, onClick: () -> Unit) -> Unit,
     onFlipped: (() -> Unit)?,
     onFlippedBack: (() -> Unit)?,
     onKnown: () -> Unit,
@@ -236,7 +238,8 @@ internal fun CuteCardLayout(
                         style = style,
                         labels = labels,
                         isPlaying = isPlaying,
-                        onAudioRequested = if (frontFaceActive) onAudioRequested else null
+                        onAudioRequested = if (frontFaceActive) onAudioRequested else null,
+                        audioButton = audioButton
                     )
                 }
 
@@ -257,7 +260,8 @@ internal fun CuteCardLayout(
                         style = style,
                         labels = labels,
                         isPlaying = isPlaying,
-                        onAudioRequested = if (!frontFaceActive) onAudioRequested else null
+                        onAudioRequested = if (!frontFaceActive) onAudioRequested else null,
+                        audioButton = audioButton
                     )
 
                     if (config.unflipButtonPosition == UnflipButtonPosition.CardTopEnd && backFaceInView) {
@@ -295,6 +299,7 @@ private fun CardFrontFace(
     labels: CuteCardLabels,
     isPlaying: Boolean,
     onAudioRequested: (() -> Unit)?,
+    audioButton: @Composable (isPlaying: Boolean, onClick: () -> Unit) -> Unit,
     modifier: Modifier = Modifier
 ) {
     if (frontIsWordOnly) {
@@ -311,6 +316,7 @@ private fun CardFrontFace(
             labels = labels,
             isPlaying = isPlaying,
             onAudioRequested = onAudioRequested,
+            audioButton = audioButton,
             modifier = modifier
         )
     }
@@ -324,6 +330,7 @@ private fun CardBackFace(
     labels: CuteCardLabels,
     isPlaying: Boolean,
     onAudioRequested: (() -> Unit)?,
+    audioButton: @Composable (isPlaying: Boolean, onClick: () -> Unit) -> Unit,
     modifier: Modifier = Modifier
 ) {
     if (frontIsWordOnly) {
@@ -333,6 +340,7 @@ private fun CardBackFace(
             labels = labels,
             isPlaying = isPlaying,
             onAudioRequested = onAudioRequested,
+            audioButton = audioButton,
             modifier = modifier
         )
     } else {

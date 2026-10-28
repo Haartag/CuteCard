@@ -1,9 +1,11 @@
 package site.llinsoft.cutecard
 
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.SideEffect
 import androidx.compose.ui.Modifier
+import site.llinsoft.cutecard.internal.ui.AudioButton
 import site.llinsoft.cutecard.internal.ui.CuteCardLayout
 import site.llinsoft.cutecard.internal.ui.DismissButton
 import site.llinsoft.cutecard.internal.ui.UnflipButton
@@ -82,6 +84,22 @@ import site.llinsoft.cutecard.internal.ui.UnflipButton
  * @param onAudioRequested Called when the audio button is tapped.
  * The consumer is responsible for all audio playback.
  * `null` hides the audio button entirely.
+ * @param audioButton Composable slot for the audio control at the bottom of the full-info face.
+ * Receives [isPlaying] to render its state and an `onClick` lambda that
+ * must be called to request playback (it calls [onAudioRequested]).
+ * Defaults to the built-in audio button. Only shown when
+ * [onAudioRequested] is not `null`:
+ * ```kotlin
+ *     audioButton = { isPlaying, onClick ->
+ *         IconButton(onClick = onClick) {
+ *             Icon(
+ *                 Icons.Default.PlayArrow,
+ *                 contentDescription = "Play",
+ *                 tint = if (isPlaying) accentColor else Color.Gray
+ *             )
+ *         }
+ *     }
+ * ```
  * @param onFlipped Called when the card flip is fully complete and the back face
  * is interactive (after the flip animation and settle lock).
  * Use this to auto-play audio or update analytics.
@@ -134,6 +152,15 @@ fun CuteCard(
     forceFlipped: Boolean? = null,
     cardActionsEnabled: Boolean = (forceFlipped == null),
     onAudioRequested: (() -> Unit)? = null,
+    audioButton: @Composable (isPlaying: Boolean, onClick: () -> Unit) -> Unit = { playing, onClick ->
+        AudioButton(
+            isPlaying = playing,
+            onClick = onClick,
+            style = style.audioButtonStyle,
+            labels = labels,
+            modifier = Modifier.fillMaxWidth()
+        )
+    },
     onFlipped: (() -> Unit)? = null,
     onFlippedBack: (() -> Unit)? = null,
     dismissButton: (@Composable (onClick: () -> Unit) -> Unit)? = { onClick ->
@@ -162,6 +189,7 @@ fun CuteCard(
         forceFlipped = forceFlipped,
         cardActionsEnabled = cardActionsEnabled,
         onAudioRequested = onAudioRequested,
+        audioButton = audioButton,
         onFlipped = onFlipped,
         onFlippedBack = onFlippedBack,
         onKnown = onKnown,
