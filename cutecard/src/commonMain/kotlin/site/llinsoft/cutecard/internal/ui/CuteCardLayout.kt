@@ -28,6 +28,7 @@ import site.llinsoft.cutecard.CuteCardConfig
 import site.llinsoft.cutecard.CuteCardContent
 import site.llinsoft.cutecard.CuteCardLabels
 import site.llinsoft.cutecard.CuteCardStyle
+import site.llinsoft.cutecard.UnflipButtonPosition
 import site.llinsoft.cutecard.internal.animation.exitModifier
 import site.llinsoft.cutecard.internal.animation.rememberFlipTransition
 import site.llinsoft.cutecard.internal.state.CuteCardPhase
@@ -49,7 +50,7 @@ import kotlinx.coroutines.delay
  * @param onKnown           Called after confirm exit animation completes.
  * @param onUnknown         Called after dismiss exit animation completes.
  * @param dismissButton     Slot shown below the card on the back face; must call its onClick to trigger exit. Null removes it and its space.
- * @param unflipButton      Slot shown above the card, right-aligned, on the back face; must call its onClick to trigger unflip.
+ * @param unflipButton      Slot placed per [CuteCardConfig.unflipButtonPosition] on the back face; must call its onClick to trigger unflip.
  */
 @Composable
 internal fun CuteCardLayout(
@@ -68,7 +69,7 @@ internal fun CuteCardLayout(
     onKnown: () -> Unit,
     onUnknown: () -> Unit,
     dismissButton: (@Composable (onClick: () -> Unit) -> Unit)?,
-    unflipButton: (@Composable (onClick: () -> Unit) -> Unit)?,
+    unflipButton: @Composable (onClick: () -> Unit) -> Unit,
     modifier: Modifier = Modifier
 ) {
     val state = stateHolder.state
@@ -157,6 +158,13 @@ internal fun CuteCardLayout(
     val frontIsWordOnly = config.frontSide == CardFrontSide.Word
     val showDismissButton = state.isBackVisible
     val showUnflipButton = state.isBackVisible
+    // Wider than isBackVisible so the in-card button rotates with the back face
+    // instead of popping in after the flip. Never composed on the front face:
+    // the back face sits on top, and an invisible button there would swallow card taps.
+    val backFaceInView = showUnflipButton
+        || state is CuteCardPhase.Flipping
+        || state is CuteCardPhase.UnFlipping
+    val onUnflipClick = { if (userInteractive) stateHolder.onUnflipTap() }
 
     // ── Layout ───────────────────────────────────────────────────────────────
 
@@ -164,7 +172,7 @@ internal fun CuteCardLayout(
         modifier = modifier,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        if (unflipButton != null) {
+        if (config.unflipButtonPosition == UnflipButtonPosition.AboveCard) {
             Box(
                 contentAlignment = Alignment.CenterEnd,
                 modifier = Modifier
@@ -174,7 +182,7 @@ internal fun CuteCardLayout(
                     .alpha(if (showUnflipButton) 1f else 0f)
                     .semantics { if (!showUnflipButton) hideFromAccessibility() }
             ) {
-                unflipButton { if (userInteractive) stateHolder.onUnflipTap() }
+                unflipButton(onUnflipClick)
             }
         }
 
@@ -251,6 +259,14 @@ internal fun CuteCardLayout(
                         isPlaying = isPlaying,
                         onAudioRequested = if (!frontFaceActive) onAudioRequested else null
                     )
+
+                    if (config.unflipButtonPosition == UnflipButtonPosition.CardTopEnd && backFaceInView) {
+                        // No extra padding: the button's own tap target insets the icon
+                        // to roughly the language pill's distance from the corner.
+                        Box(modifier = Modifier.align(Alignment.TopEnd)) {
+                            unflipButton(onUnflipClick)
+                        }
+                    }
                 }
             }
 

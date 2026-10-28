@@ -355,15 +355,29 @@ Button(
 
 ## Unflip button
 
-The unflip button is **disabled by default** (`unflipButton = null`). When enabled, it appears above the card (top-right) while the back face is visible. Tapping it plays the flip animation in reverse, returning to the front face without dismissing the card.
+The unflip button is **disabled by default**. Choose where it appears with `unflipButtonPosition` — it shows while the back face is visible, and tapping it plays the flip animation in reverse, returning to the front face without dismissing the card.
 
-Enable it by supplying any composable — the `onClick` lambda **must be called** to trigger the animation:
+| `UnflipButtonPosition` | Placement |
+|---|---|
+| `None` (default) | No button, no reserved space |
+| `AboveCard` | Above the card, right-aligned. Space is reserved so the card never moves |
+| `CardTopEnd` | Inside the card's top-right corner, rotating with the back face |
 
 ```kotlin
 CuteCard(
     content = content,
     onKnown = { ... },
-    onUnknown = { ... },
+    config = CuteCardConfig(unflipButtonPosition = UnflipButtonPosition.CardTopEnd)
+)
+```
+
+The built-in rewind icon is used by default. Replace it with any composable — the `onClick` lambda **must be called** to trigger the animation:
+
+```kotlin
+CuteCard(
+    content = content,
+    onKnown = { ... },
+    config = CuteCardConfig(unflipButtonPosition = UnflipButtonPosition.AboveCard),
     unflipButton = { onClick ->
         IconButton(onClick = onClick) {
             Icon(Icons.Default.Replay, contentDescription = "Show word")
@@ -371,8 +385,6 @@ CuteCard(
     }
 )
 ```
-
-When `null`, no space is reserved above the card.
 
 ---
 

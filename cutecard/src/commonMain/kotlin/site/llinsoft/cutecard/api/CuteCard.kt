@@ -106,11 +106,11 @@ import site.llinsoft.cutecard.internal.ui.UnflipButton
  *         }
  *     }
  * ```
- * @param unflipButton Composable slot for an icon shown above the card (top-right) while the
- * back face is visible. Receives an `onClick` lambda that must be called
- * to trigger the reverse flip animation back to the front face.
- * `null` (default) disables the button entirely — no space is reserved.
- * Supply any composable to enable it:
+ * @param unflipButton Composable slot for the control that reverse-flips the card back to its
+ * front face. Shown only when [CuteCardConfig.unflipButtonPosition] is not
+ * [UnflipButtonPosition.None]. Receives an `onClick` lambda that must be
+ * called to trigger the reverse flip. Defaults to the built-in rewind icon.
+ * Supply any composable to replace it:
  * ```kotlin
  *     unflipButton = { onClick ->
  *         IconButton(onClick = onClick) {
@@ -139,7 +139,9 @@ fun CuteCard(
     dismissButton: (@Composable (onClick: () -> Unit) -> Unit)? = { onClick ->
         DismissButton(onClick = onClick, style = style.dismissButtonStyle, labels = labels)
     },
-    unflipButton: (@Composable (onClick: () -> Unit) -> Unit)? = null
+    unflipButton: @Composable (onClick: () -> Unit) -> Unit = { onClick ->
+        UnflipButton(onClick = onClick, style = style.dismissButtonStyle, labels = labels)
+    }
 ) {
     SideEffect {
         state.actionsEnabled = cardActionsEnabled

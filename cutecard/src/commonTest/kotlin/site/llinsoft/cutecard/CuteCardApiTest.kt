@@ -66,6 +66,15 @@ class CuteCardApiTest {
         assertEquals(FlipDirection.Horizontal, c.flipDirection)
         assertEquals(ExitAnimation.SlideUp, c.confirmExit)
         assertEquals(ExitAnimation.SlideDown, c.dismissExit)
+        assertEquals(UnflipButtonPosition.None, c.unflipButtonPosition)
+    }
+
+    @Test
+    fun unflipButtonPositionValues() {
+        assertEquals(
+            listOf(UnflipButtonPosition.None, UnflipButtonPosition.AboveCard, UnflipButtonPosition.CardTopEnd),
+            UnflipButtonPosition.entries
+        )
     }
 
     @Test

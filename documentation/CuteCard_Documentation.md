@@ -180,7 +180,7 @@ fun CuteCard(
     onFlipped: (() -> Unit)? = null,
     onFlippedBack: (() -> Unit)? = null,
     dismissButton: (@Composable (onClick: () -> Unit) -> Unit)? = { /* built-in text button */ },
-    unflipButton: (@Composable (onClick: () -> Unit) -> Unit)? = null
+    unflipButton: @Composable (onClick: () -> Unit) -> Unit = { /* built-in rewind icon */ }
 )
 ```
 
@@ -202,7 +202,7 @@ fun CuteCard(
 | `onFlipped` | `(() -> Unit)?` | Called when the back face becomes interactive (flip animation done + settle lock expired). `null` = no callback |
 | `onFlippedBack` | `(() -> Unit)?` | Called when the user taps the back face to confirm (before exit animation). `null` = no callback |
 | `dismissButton` | `(@Composable (onClick: () -> Unit) -> Unit)?` | Slot for a custom dismiss control. The `onClick` lambda **must be called** to trigger the dismiss animation. Defaults to the built-in text button. While hidden (front face), the slot is rendered invisibly so the card height stays constant. `null` removes the button entirely — no space is reserved, and `onUnknown` is never called |
-| `unflipButton` | `(@Composable (onClick: () -> Unit) -> Unit)?` | Slot for an icon shown above the card (top-right) when the back face is visible. The `onClick` lambda **must be called** to trigger the reverse flip. While hidden (front face), the slot is rendered invisibly so the card height stays constant. `null` (default) disables the button entirely — no space is reserved |
+| `unflipButton` | `@Composable (onClick: () -> Unit) -> Unit` | Slot for the reverse-flip control. Defaults to the built-in rewind icon. Shown only when `config.unflipButtonPosition` is not `None`. The `onClick` lambda **must be called** to trigger the reverse flip. See [Unflip button](#unflip-button) |
 
 ---
 
@@ -246,7 +246,8 @@ data class CuteCardConfig(
     val exitDurationMs: Int = 300,
     val flipDirection: FlipDirection = FlipDirection.Horizontal,
     val confirmExit: ExitAnimation = ExitAnimation.SlideUp,
-    val dismissExit: ExitAnimation = ExitAnimation.SlideDown
+    val dismissExit: ExitAnimation = ExitAnimation.SlideDown,
+    val unflipButtonPosition: UnflipButtonPosition = UnflipButtonPosition.None
 )
 ```
 
@@ -259,6 +260,7 @@ data class CuteCardConfig(
 | `flipDirection` | `Horizontal` | `Horizontal` = rotateY, `Vertical` = rotateX |
 | `confirmExit` | `SlideUp` | Exit animation when card is marked as known |
 | `dismissExit` | `SlideDown` | Exit animation when card is marked as unknown |
+| `unflipButtonPosition` | `None` | Where the unflip button appears: `None`, `AboveCard`, `CardTopEnd`. See [Unflip button](#unflip-button) |
 
 ---
 
@@ -424,6 +426,15 @@ enum class CardFrontSide {
 enum class FlipDirection {
     Horizontal,   // rotateY — card flips left to right (default)
     Vertical      // rotateX — card flips top to bottom
+}
+```
+
+#### `UnflipButtonPosition`
+```kotlin
+enum class UnflipButtonPosition {
+    None,         // no button, no reserved space (default)
+    AboveCard,    // above the card, right-aligned
+    CardTopEnd    // inside the card's top-right corner
 }
 ```
 
@@ -598,21 +609,39 @@ CuteCard(
 
 ## Unflip button
 
-The unflip button is **disabled by default** (`unflipButton = null`). When enabled, it appears above the card (top-right) while the back face is visible. Tapping it plays the flip animation in reverse and returns to the front face without marking the card as known or unknown — the card stays in the deck.
+The unflip button is **disabled by default** (`unflipButtonPosition = UnflipButtonPosition.None`). When enabled, it appears while the back face is visible. Tapping it plays the flip animation in reverse and returns to the front face without marking the card as known or unknown — the card stays in the deck.
 
-When enabled, the button is shown and hidden automatically based on card state. While hidden (front face showing), the slot is rendered invisibly at its natural size — the card height stays constant regardless of how tall the button is. Hidden slots are also excluded from the accessibility tree so they cannot be focused by TalkBack or VoiceOver.
+### Positions
 
-When `null`, no space is reserved — the card sits flush with the top of its container.
+| `UnflipButtonPosition` | Placement | Behaviour |
+|---|---|---|
+| `None` (default) | — | No button, no reserved space. The card sits flush with the top of its container |
+| `AboveCard` | Above the card, right-aligned | While hidden (front face showing), the slot is rendered invisibly at its natural size, so the card height stays constant. Hidden slots are excluded from the accessibility tree |
+| `CardTopEnd` | Inside the card's top-right corner | Part of the back face: it rotates in and out with the flip. Not composed at all while the front face is showing, so it never intercepts taps on the front |
+
+The top-right corner is free on both faces — the language pill sits top-left and the audio button at the bottom.
 
 ### Enabling the unflip button
 
-The `unflipButton` slot accepts any composable. The `onClick` lambda **must be called** to trigger the reverse flip:
+Set the position in `CuteCardConfig`. The built-in rewind icon is used by default:
 
 ```kotlin
 CuteCard(
     content = content,
     onKnown = { ... },
-    onUnknown = { ... },
+    config = CuteCardConfig(unflipButtonPosition = UnflipButtonPosition.CardTopEnd)
+)
+```
+
+### Custom unflip button
+
+The `unflipButton` slot accepts any composable and works with both positions. The `onClick` lambda **must be called** to trigger the reverse flip:
+
+```kotlin
+CuteCard(
+    content = content,
+    onKnown = { ... },
+    config = CuteCardConfig(unflipButtonPosition = UnflipButtonPosition.AboveCard),
     unflipButton = { onClick ->
         IconButton(onClick = onClick) {
             Icon(Icons.Default.Replay, contentDescription = "Show word")
@@ -861,7 +890,7 @@ When `null`, the component behaves exactly as before — no behavior change unle
     CardBack.kt
     AudioButton.kt
     DismissButton.kt       ← "I don't know" text button, below card
-    UnflipButton.kt        ← rewind icon button, above card (top-right)
+    UnflipButton.kt        ← built-in rewind icon button (above card or in its top-right corner)
     GhostStack.kt           ← two static cards behind the active card
   /theme
     CuteCardTokens.kt      ← internal constants (sizes, radii, durations)
