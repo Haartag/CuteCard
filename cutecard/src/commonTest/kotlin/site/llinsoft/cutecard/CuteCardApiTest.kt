@@ -1,5 +1,6 @@
 package site.llinsoft.cutecard
 
+import androidx.compose.ui.unit.dp
 import site.llinsoft.cutecard.CardFrontSide
 import site.llinsoft.cutecard.ExitAnimation
 import site.llinsoft.cutecard.CuteCardConfig
@@ -8,6 +9,7 @@ import site.llinsoft.cutecard.CuteCardLabels
 import site.llinsoft.cutecard.FlipDirection
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertFailsWith
 import kotlin.test.assertNull
 
 class CuteCardApiTest {
@@ -83,6 +85,23 @@ class CuteCardApiTest {
             listOf(WordVerticalPosition.Raised, WordVerticalPosition.Centered),
             WordVerticalPosition.entries
         )
+    }
+
+    @Test
+    fun ghostStackStyleDefaultsKeepLegacyLook() {
+        val g = GhostStackStyle()
+        assertNull(g.sideInsetPerStep)
+        assertNull(g.offsetPerStep)
+        assertEquals(0.85f, g.nearCardAlpha)
+        assertEquals(0.65f, g.farCardAlpha)
+    }
+
+    @Test
+    fun ghostStackStyleRejectsInvalidValues() {
+        assertFailsWith<IllegalArgumentException> { GhostStackStyle(sideInsetPerStep = (-1).dp) }
+        assertFailsWith<IllegalArgumentException> { GhostStackStyle(offsetPerStep = (-1).dp) }
+        assertFailsWith<IllegalArgumentException> { GhostStackStyle(nearCardAlpha = 1.5f) }
+        assertFailsWith<IllegalArgumentException> { GhostStackStyle(farCardAlpha = -0.1f) }
     }
 
     @Test

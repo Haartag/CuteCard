@@ -102,6 +102,33 @@ data class LanguagePillStyle(
 )
 
 /**
+ * Geometry and opacity of the decorative ghost cards behind the active card.
+ * "Step" 1 is the card directly behind the active one, step 2 the one behind that.
+ *
+ * @param sideInsetPerStep How much narrower each lower card is on each side, per step.
+ * Cards keep the full card height. `null` (default) scales each card down instead
+ * (95 % and 90 % of the active card's size).
+ * @param offsetPerStep How far each lower card is shifted down, per step.
+ * `null` (default) uses 24 dp and 40 dp.
+ * @param nearCardAlpha Opacity of the card directly behind the active one.
+ * @param farCardAlpha Opacity of the card at the back of the stack.
+ */
+@Immutable
+data class GhostStackStyle(
+    val sideInsetPerStep: Dp? = null,
+    val offsetPerStep: Dp? = null,
+    val nearCardAlpha: Float = 0.85f,
+    val farCardAlpha: Float = 0.65f
+) {
+    init {
+        require(sideInsetPerStep == null || sideInsetPerStep >= 0.dp) { "sideInsetPerStep must be >= 0.dp" }
+        require(offsetPerStep == null || offsetPerStep >= 0.dp) { "offsetPerStep must be >= 0.dp" }
+        require(nearCardAlpha in 0f..1f) { "nearCardAlpha must be in 0..1" }
+        require(farCardAlpha in 0f..1f) { "farCardAlpha must be in 0..1" }
+    }
+}
+
+/**
  * Vertical position of the word inside the word area — the space left after
  * [CuteCardStyle.contentPadding] and the reserved top / bottom rows.
  *
@@ -149,6 +176,7 @@ enum class WordVerticalPosition {
  * @param backWordTextStyle Typography of the main text on the back face. Merged over
  * [wordTextStyle], so set only what differs, e.g. a font family. `null` = same as the front.
  * @param backWordTextColor Color of the main text on the back face. `null` = [wordTextColor].
+ * @param ghostStackStyle Size, offset and opacity of the ghost cards. See [GhostStackStyle].
  */
 @Immutable
 data class CuteCardStyle(
@@ -173,5 +201,6 @@ data class CuteCardStyle(
     val reservedBottomHeight: Dp = 0.dp,
     val wordVerticalPosition: WordVerticalPosition = WordVerticalPosition.Raised,
     val backWordTextStyle: TextStyle? = null,
-    val backWordTextColor: Color? = null
+    val backWordTextColor: Color? = null,
+    val ghostStackStyle: GhostStackStyle = GhostStackStyle()
 )

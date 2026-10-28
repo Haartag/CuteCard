@@ -199,6 +199,7 @@ style = CuteCardDefaults.darkStyle()
 | `cardAspectRatio` | Width-to-height ratio (default 3:4) |
 | `cardBackgroundColor` | Card surface fill |
 | `ghostCardBackgroundColor` | Stack cards behind the active card |
+| `ghostStackStyle` | Ghost card inset, offset and opacity — see [Ghost card size and opacity](#ghost-card-size-and-opacity) |
 | `cardBorderColor` | Optional card stroke (transparent = none) |
 | `wordTextStyle` / `wordTextColor` | Primary word / translation typography |
 | `wordAutoSizeMinFontSize` | Smallest size the word shrinks to when it doesn't fit |
@@ -361,6 +362,30 @@ CuteCard(
 | ≥ 3 | 2 |
 | 2 | 1 |
 | ≤ 1 | 0 |
+
+### Ghost card size and opacity
+
+`ghostStackStyle` on `CuteCardStyle` controls the ghost cards' geometry and opacity. Step 1 is the card directly behind the active one, step 2 the card behind that. Every field defaults to today's look.
+
+| Field | Default | Controls |
+|---|---|---|
+| `sideInsetPerStep` | `null` | Each lower card is this much narrower **on each side**, per step, at full card height (8.dp → 8 dp, then 16 dp). `null` scales the cards down to 95 % and 90 % instead |
+| `offsetPerStep` | `null` | Each lower card is shifted down by this much per step (6.dp → 6 dp, then 12 dp). `null` uses 24 dp and 40 dp |
+| `nearCardAlpha` | `0.85` | Opacity of the card directly behind the active one |
+| `farCardAlpha` | `0.65` | Opacity of the card at the back |
+
+```kotlin
+style = CuteCardDefaults.style().copy(
+    ghostStackStyle = GhostStackStyle(
+        sideInsetPerStep = 8.dp,
+        offsetPerStep = 6.dp,
+        nearCardAlpha = 1f,
+        farCardAlpha = 1f
+    )
+)
+```
+
+The offset is drawn outside the card's layout bounds, so the stack peeks into the space below the card. Leave enough room there (the default dismiss button sits 48 dp below the card).
 
 ---
 

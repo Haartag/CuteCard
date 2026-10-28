@@ -315,7 +315,8 @@ data class CuteCardStyle(
     val reservedBottomHeight: Dp = 0.dp,
     val wordVerticalPosition: WordVerticalPosition = WordVerticalPosition.Raised,
     val backWordTextStyle: TextStyle? = null,  // back-face overrides, merged over wordTextStyle
-    val backWordTextColor: Color? = null       // back-face text color, null = wordTextColor
+    val backWordTextColor: Color? = null,      // back-face text color, null = wordTextColor
+    val ghostStackStyle: GhostStackStyle = GhostStackStyle()
 )
 ```
 
@@ -367,6 +368,19 @@ style = CuteCardDefaults.style().copy(
 )
 ```
 
+
+#### `GhostStackStyle`
+
+```kotlin
+data class GhostStackStyle(
+    val sideInsetPerStep: Dp? = null,   // null = scale to 95 % / 90 %
+    val offsetPerStep: Dp? = null,      // null = 24 dp / 40 dp
+    val nearCardAlpha: Float = 0.85f,
+    val farCardAlpha: Float = 0.65f
+)
+```
+
+Negative dp values and alphas outside `0..1` throw `IllegalArgumentException`. See [Ghost card size and opacity](#ghost-card-size-and-opacity).
 
 #### `AudioButtonStyle`
 
@@ -952,6 +966,30 @@ CuteCard(
 | ≤ 1 | 0 |
 
 When `null`, the component behaves exactly as before — no behavior change unless you opt in by passing the count.
+
+### Ghost card size and opacity
+
+`ghostStackStyle` on `CuteCardStyle` controls the ghost cards' geometry and opacity. Step 1 is the card directly behind the active one, step 2 the card behind that. Every field defaults to today's look.
+
+| Field | Default | Controls |
+|---|---|---|
+| `sideInsetPerStep` | `null` | Each lower card is this much narrower **on each side**, per step, at full card height (8.dp → 8 dp, then 16 dp). `null` scales the cards down to 95 % and 90 % instead |
+| `offsetPerStep` | `null` | Each lower card is shifted down by this much per step (6.dp → 6 dp, then 12 dp). `null` uses 24 dp and 40 dp |
+| `nearCardAlpha` | `0.85` | Opacity of the card directly behind the active one |
+| `farCardAlpha` | `0.65` | Opacity of the card at the back |
+
+```kotlin
+style = CuteCardDefaults.style().copy(
+    ghostStackStyle = GhostStackStyle(
+        sideInsetPerStep = 8.dp,
+        offsetPerStep = 6.dp,
+        nearCardAlpha = 1f,
+        farCardAlpha = 1f
+    )
+)
+```
+
+The offset is drawn outside the card's layout bounds, so the stack peeks into the space below the card. Leave enough room there (the default dismiss button sits 48 dp below the card).
 
 ---
 

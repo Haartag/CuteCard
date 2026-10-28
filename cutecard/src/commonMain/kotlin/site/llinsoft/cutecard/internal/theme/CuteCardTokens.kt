@@ -50,12 +50,6 @@ internal object CuteCardTokens {
     /** Elevation of the third ghost card. */
     val GhostCard3Elevation = 1.5.dp
 
-    /** Opacity of the second ghost card surface. */
-    const val GhostCard2Alpha = 0.85f
-
-    /** Opacity of the third ghost card surface. */
-    const val GhostCard3Alpha = 0.65f
-
     // Typography
 
     /** Font size of the primary word / translation. */
