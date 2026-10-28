@@ -37,6 +37,7 @@ internal fun CardBack(
 ) {
     Box(modifier = modifier.fillMaxSize()) {
         val hasDetails = content.phonetics != null || content.wordClass != null
+        val textStyle = style.backWordTextStyle?.let(style.wordTextStyle::merge) ?: style.wordTextStyle
         WordArea(
             style = style,
             modifier = Modifier.semantics {
@@ -45,14 +46,14 @@ internal fun CardBack(
             word = {
                 Text(
                     text = content.translation,
-                    style = style.wordTextStyle,
-                    color = style.wordTextColor,
+                    style = textStyle,
+                    color = style.backWordTextColor ?: style.wordTextColor,
                     textAlign = TextAlign.Center,
                     maxLines = 3,
                     overflow = TextOverflow.Ellipsis,
                     autoSize = TextAutoSize.StepBased(
                         minFontSize = style.wordAutoSizeMinFontSize,
-                        maxFontSize = style.wordTextStyle.fontSize,
+                        maxFontSize = textStyle.fontSize,
                     ),
                 )
             },

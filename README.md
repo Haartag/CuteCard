@@ -202,12 +202,26 @@ style = CuteCardDefaults.darkStyle()
 | `cardBorderColor` | Optional card stroke (transparent = none) |
 | `wordTextStyle` / `wordTextColor` | Primary word / translation typography |
 | `wordAutoSizeMinFontSize` | Smallest size the word shrinks to when it doesn't fit |
+| `backWordTextStyle` / `backWordTextColor` | Back-face overrides for the main text — see [Per-side word text style](#per-side-word-text-style) |
 | `phoneticsTextStyle` / `phoneticsTextColor` | Phonetics row typography |
 | `wordClassPillStyle` | Word class chip — text, colors, shape |
 | `audioButtonStyle` | Audio button — icon colors, stroke widths, background/text colors per state, shape, typography |
 | `dismissButtonStyle` | Dismiss button — text color, typography, shape |
 | `languagePillStyle` | Language indicator pill — text style, colors, shape, padding, corner offset. `backTextColor` / `backContainerColor` override colors on the back face independently |
 | `contentPadding` / `reservedTopHeight` / `reservedBottomHeight` / `wordVerticalPosition` | Word placement — see [Word placement](#word-placement) |
+
+### Per-side word text style
+
+The back face can use a different style for its main text. `backWordTextStyle` is **merged over** `wordTextStyle`, so set only what differs; `backWordTextColor` overrides the color. Both fall back to the base values when `null`:
+
+```kotlin
+style = CuteCardDefaults.style().copy(
+    backWordTextStyle = TextStyle(fontFamily = FontFamily.Serif, fontStyle = FontStyle.Italic),
+    backWordTextColor = Color(0xFF3A5A8C)
+)
+```
+
+Like the language pill colors, "back" means the back face as defined by the exercise mode: in `CardFrontSide.Translation` mode the full-info face is shown first and keeps the back style. Auto-size scales from the merged style's font size.
 
 ### Per-side language pill colors
 

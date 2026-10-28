@@ -128,8 +128,10 @@ enum class WordVerticalPosition {
  * @param cardBackgroundColor Background fill of the card surface.
  * @param ghostCardBackgroundColor Background fill of the decorative stack cards behind the active card.
  * @param cardBorderColor Optional border stroke. Transparent = no border.
- * @param wordTextStyle Typography of the primary word / translation.
- * @param wordTextColor Color of the primary word / translation text.
+ * @param wordTextStyle Typography of the primary word / translation. Used on both faces
+ * unless [backWordTextStyle] is set.
+ * @param wordTextColor Color of the primary word / translation text. Used on both faces
+ * unless [backWordTextColor] is set.
  * @param phoneticsTextStyle Typography of the phonetic transcription.
  * @param phoneticsTextColor Color of the phonetic transcription text.
  * @param wordClassPillStyle Full appearance of the word class pill.
@@ -144,6 +146,9 @@ enum class WordVerticalPosition {
  * @param reservedBottomHeight Height of a row at the bottom of the word area that the word
  * never enters. Size it to the audio button. Applies to both faces.
  * @param wordVerticalPosition Where the word sits in the word area. See [WordVerticalPosition].
+ * @param backWordTextStyle Typography of the main text on the back face. Merged over
+ * [wordTextStyle], so set only what differs, e.g. a font family. `null` = same as the front.
+ * @param backWordTextColor Color of the main text on the back face. `null` = [wordTextColor].
  */
 @Immutable
 data class CuteCardStyle(
@@ -166,5 +171,7 @@ data class CuteCardStyle(
     val contentPadding: Dp = 28.dp,
     val reservedTopHeight: Dp = 0.dp,
     val reservedBottomHeight: Dp = 0.dp,
-    val wordVerticalPosition: WordVerticalPosition = WordVerticalPosition.Raised
+    val wordVerticalPosition: WordVerticalPosition = WordVerticalPosition.Raised,
+    val backWordTextStyle: TextStyle? = null,
+    val backWordTextColor: Color? = null
 )

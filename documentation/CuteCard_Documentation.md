@@ -313,9 +313,24 @@ data class CuteCardStyle(
     val contentPadding: Dp = 28.dp,
     val reservedTopHeight: Dp = 0.dp,
     val reservedBottomHeight: Dp = 0.dp,
-    val wordVerticalPosition: WordVerticalPosition = WordVerticalPosition.Raised
+    val wordVerticalPosition: WordVerticalPosition = WordVerticalPosition.Raised,
+    val backWordTextStyle: TextStyle? = null,  // back-face overrides, merged over wordTextStyle
+    val backWordTextColor: Color? = null       // back-face text color, null = wordTextColor
 )
 ```
+
+#### Per-side word text style
+
+The back face can use a different style for its main text. `backWordTextStyle` is **merged over** `wordTextStyle`, so set only what differs; `backWordTextColor` overrides the color. Both fall back to the base values when `null`:
+
+```kotlin
+style = CuteCardDefaults.style().copy(
+    backWordTextStyle = TextStyle(fontFamily = FontFamily.Serif, fontStyle = FontStyle.Italic),
+    backWordTextColor = Color(0xFF3A5A8C)
+)
+```
+
+Like the language pill colors, "back" means the back face as defined by the exercise mode: in `CardFrontSide.Translation` mode the full-info face is shown first and keeps the back style. Auto-size scales from the merged style's font size.
 
 #### Word placement
 
