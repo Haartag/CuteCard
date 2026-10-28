@@ -7,6 +7,7 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
+import site.llinsoft.cutecard.internal.theme.CuteCardTokens
 
 /**
  * Controls the visual appearance of the audio button's two states.
@@ -102,6 +103,49 @@ data class LanguagePillStyle(
 )
 
 /**
+ * One shadow layer under a card. Several layers can be stacked — see [CardShadows].
+ *
+ * @param color Shadow color. Its alpha sets the strength, so take it from your palette
+ * (e.g. a lighter shadow in light mode, a deeper one in dark mode).
+ * @param blur Softness — the blur radius of the shadow edge.
+ * @param offsetY How far below the card the shadow falls.
+ * @param spread Grows (positive) or shrinks (negative) the shadow before blurring.
+ * Negative values need a rounded-rectangle [CuteCardStyle.cardShape] (the default);
+ * custom path shapes clip the shadow.
+ */
+@Immutable
+data class CardShadow(
+    val color: Color,
+    val blur: Dp,
+    val offsetY: Dp,
+    val spread: Dp = 0.dp
+) {
+    init {
+        require(blur >= 0.dp) { "blur must be >= 0.dp" }
+    }
+}
+
+/**
+ * Shadows for every card in the stack. Each list is drawn in order, first layer lowest;
+ * an empty list means no shadow.
+ *
+ * @param topOverDeck The active card while ghost cards are shown under it.
+ * @param topAlone The active card when no ghost cards are shown under it — the last card
+ * (see `remainingCards` on [CuteCard]).
+ * @param nearDeckCard The ghost card directly behind the active one. `null` keeps the
+ * built-in shadow, which fades with [GhostStackStyle.nearCardAlpha].
+ * @param farDeckCard The ghost card at the back. `null` keeps the built-in shadow,
+ * which fades with [GhostStackStyle.farCardAlpha].
+ */
+@Immutable
+data class CardShadows(
+    val topOverDeck: List<CardShadow> = CuteCardTokens.TopCardShadows,
+    val topAlone: List<CardShadow> = CuteCardTokens.TopCardShadows,
+    val nearDeckCard: List<CardShadow>? = null,
+    val farDeckCard: List<CardShadow>? = null
+)
+
+/**
  * Geometry and opacity of the decorative ghost cards behind the active card.
  * "Step" 1 is the card directly behind the active one, step 2 the one behind that.
  *
@@ -150,7 +194,6 @@ enum class WordVerticalPosition {
  * then use [copy] to override what you need.
  *
  * @param cardShape Shape of the card surface.
- * @param cardElevation Shadow elevation of the active card.
  * @param cardAspectRatio Width-to-height ratio of the card. Default 3:4.
  * @param cardBackgroundColor Background fill of the card surface.
  * @param ghostCardBackgroundColor Background fill of the decorative stack cards behind the active card.
@@ -177,11 +220,11 @@ enum class WordVerticalPosition {
  * [wordTextStyle], so set only what differs, e.g. a font family. `null` = same as the front.
  * @param backWordTextColor Color of the main text on the back face. `null` = [wordTextColor].
  * @param ghostStackStyle Size, offset and opacity of the ghost cards. See [GhostStackStyle].
+ * @param shadows Shadow layers of the active card and the ghost cards. See [CardShadows].
  */
 @Immutable
 data class CuteCardStyle(
     val cardShape: Shape,
-    val cardElevation: Dp,
     val cardAspectRatio: Float,
     val cardBackgroundColor: Color,
     val ghostCardBackgroundColor: Color,
@@ -202,5 +245,6 @@ data class CuteCardStyle(
     val wordVerticalPosition: WordVerticalPosition = WordVerticalPosition.Raised,
     val backWordTextStyle: TextStyle? = null,
     val backWordTextColor: Color? = null,
-    val ghostStackStyle: GhostStackStyle = GhostStackStyle()
+    val ghostStackStyle: GhostStackStyle = GhostStackStyle(),
+    val shadows: CardShadows = CardShadows()
 )

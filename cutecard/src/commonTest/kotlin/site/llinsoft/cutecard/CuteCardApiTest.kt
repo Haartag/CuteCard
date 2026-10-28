@@ -1,5 +1,6 @@
 package site.llinsoft.cutecard
 
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import site.llinsoft.cutecard.CardFrontSide
 import site.llinsoft.cutecard.ExitAnimation
@@ -11,6 +12,7 @@ import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
 import kotlin.test.assertNull
+import kotlin.test.assertTrue
 
 class CuteCardApiTest {
 
@@ -102,6 +104,28 @@ class CuteCardApiTest {
         assertFailsWith<IllegalArgumentException> { GhostStackStyle(offsetPerStep = (-1).dp) }
         assertFailsWith<IllegalArgumentException> { GhostStackStyle(nearCardAlpha = 1.5f) }
         assertFailsWith<IllegalArgumentException> { GhostStackStyle(farCardAlpha = -0.1f) }
+    }
+
+    @Test
+    fun cardShadowsDefaultsKeepBuiltInDeckShadows() {
+        val s = CardShadows()
+        assertNull(s.nearDeckCard)
+        assertNull(s.farDeckCard)
+        assertEquals(s.topOverDeck, s.topAlone)
+        assertTrue(s.topOverDeck.isNotEmpty())
+    }
+
+    @Test
+    fun cardShadowRejectsNegativeBlur() {
+        assertFailsWith<IllegalArgumentException> {
+            CardShadow(color = Color.Black, blur = (-1).dp, offsetY = 2.dp)
+        }
+    }
+
+    @Test
+    fun cardShadowAllowsNegativeSpreadAndOffset() {
+        val s = CardShadow(color = Color.Black, blur = 4.dp, offsetY = (-2).dp, spread = (-3).dp)
+        assertEquals((-3).dp, s.spread)
     }
 
     @Test

@@ -296,7 +296,6 @@ Controls the full visual appearance of the card. Build via `CuteCardDefaults.sty
 ```kotlin
 data class CuteCardStyle(
     val cardShape: Shape,
-    val cardElevation: Dp,
     val cardAspectRatio: Float,
     val cardBackgroundColor: Color,
     val ghostCardBackgroundColor: Color,
@@ -316,7 +315,8 @@ data class CuteCardStyle(
     val wordVerticalPosition: WordVerticalPosition = WordVerticalPosition.Raised,
     val backWordTextStyle: TextStyle? = null,  // back-face overrides, merged over wordTextStyle
     val backWordTextColor: Color? = null,      // back-face text color, null = wordTextColor
-    val ghostStackStyle: GhostStackStyle = GhostStackStyle()
+    val ghostStackStyle: GhostStackStyle = GhostStackStyle(),
+    val shadows: CardShadows = CardShadows()
 )
 ```
 
@@ -368,6 +368,57 @@ style = CuteCardDefaults.style().copy(
 )
 ```
 
+
+#### Shadows
+
+```kotlin
+data class CardShadow(
+    val color: Color,
+    val blur: Dp,           // must be >= 0.dp
+    val offsetY: Dp,
+    val spread: Dp = 0.dp
+)
+
+data class CardShadows(
+    val topOverDeck: List<CardShadow> = /* built-in two-layer shadow */,
+    val topAlone: List<CardShadow> = /* built-in two-layer shadow */,
+    val nearDeckCard: List<CardShadow>? = null,
+    val farDeckCard: List<CardShadow>? = null
+)
+```
+
+Shadows are described as **layers**. The active card and the deck cards use the same model, `CardShadow`, and each card takes a list of them — stack a thin sharp shadow close to the card with a wider soft one for a paper look.
+
+| `CardShadow` field | Default | Controls |
+|---|---|---|
+| `color` | — | Shadow color. Its alpha sets the strength — take it from your palette so light and dark mode each get their own |
+| `blur` | — | Softness of the edge (blur radius) |
+| `offsetY` | — | How far below the card the shadow falls |
+| `spread` | `0.dp` | Grows or shrinks the shadow before blurring. Negative values need a rounded-rectangle `cardShape` (the default) |
+
+`CardShadows` assigns layers per card. Each list is drawn in order, first layer lowest; an empty list means no shadow.
+
+| `CardShadows` field | Default | Used for |
+|---|---|---|
+| `topOverDeck` | built-in two-layer shadow | The active card while deck cards are shown under it |
+| `topAlone` | built-in two-layer shadow | The active card when no deck cards are under it — the last card (`remainingCards = 1`) |
+| `nearDeckCard` | `null` | The deck card directly behind. `null` keeps the built-in shadow, which fades with `nearCardAlpha` |
+| `farDeckCard` | `null` | The deck card at the back. `null` keeps the built-in shadow, which fades with `farCardAlpha` |
+
+```kotlin
+val sharp = CardShadow(palette.shadowSharp, blur = 2.dp, offsetY = 1.dp)
+
+style = CuteCardDefaults.style().copy(
+    shadows = CardShadows(
+        topOverDeck = listOf(sharp, CardShadow(palette.shadowSoft, blur = 16.dp, offsetY = 6.dp)),
+        topAlone = listOf(sharp, CardShadow(palette.shadowSoft, blur = 28.dp, offsetY = 12.dp)),
+        nearDeckCard = listOf(sharp),
+        farDeckCard = listOf(sharp, CardShadow(palette.shadowDeep, blur = 24.dp, offsetY = 10.dp))
+    )
+)
+```
+
+Custom lists are drawn exactly as given — they are never tied to the deck cards' opacity. The active card's shadows are hidden while it flips and come back when the flip ends. The shadows render the same on Android and iOS.
 
 #### `GhostStackStyle`
 
@@ -1040,6 +1091,7 @@ The offset is drawn outside the card's layout bounds, so the stack peeks into th
     CardFront.kt
     CardBack.kt
     WordArea.kt            ← shared word placement for both faces
+    CardShadows.kt         ← layered dropShadow helper shared by the active card and the deck
     AudioButton.kt         ← built-in audio button (default for the audioButton slot)
     DismissButton.kt       ← "I don't know" text button, below card
     UnflipButton.kt        ← built-in rewind icon button (above card or in its top-right corner)

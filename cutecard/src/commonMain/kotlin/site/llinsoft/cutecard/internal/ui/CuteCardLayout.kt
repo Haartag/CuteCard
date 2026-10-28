@@ -19,7 +19,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.semantics.hideFromAccessibility
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
@@ -140,19 +139,23 @@ internal fun CuteCardLayout(
         }
     )
 
-    // ── Shadow elevation ─────────────────────────────────────────────────────
+    // ── Shadows ──────────────────────────────────────────────────────────────
     // Hide 50 ms after flip starts; restore 50 ms before flip ends.
 
-    var shadowElevation by remember { mutableStateOf(style.cardElevation) }
+    var shadowsVisible by remember { mutableStateOf(true) }
     LaunchedEffect(state) {
         if (state is CuteCardPhase.Flipping || state is CuteCardPhase.UnFlipping) {
             delay(50)
-            shadowElevation = 0.dp
+            shadowsVisible = false
             delay((config.flipDurationMs - 100).toLong().coerceAtLeast(0))
-            shadowElevation = style.cardElevation
+            shadowsVisible = true
         } else {
-            shadowElevation = style.cardElevation
+            shadowsVisible = true
         }
+    }
+    val topShadows = remember(style.shadows, ghostCount) {
+        val layers = if (ghostCount == 0) style.shadows.topAlone else style.shadows.topOverDeck
+        layers.map { it.toShadow() }
     }
 
     // ── Determine which content goes on which face ───────────────────────────
@@ -207,10 +210,9 @@ internal fun CuteCardLayout(
                     .then(exit)
                     .fillMaxWidth()
                     .aspectRatio(style.cardAspectRatio)
-                    .shadow(
-                        elevation = shadowElevation,
-                        shape = style.cardShape,
-                        clip = false
+                    .dropShadows(
+                        shadows = if (shadowsVisible) topShadows else emptyList(),
+                        shape = style.cardShape
                     )
                     .clickable(
                         enabled = userInteractive,

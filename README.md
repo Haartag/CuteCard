@@ -180,6 +180,41 @@ style = CuteCardDefaults.style().copy(
 )
 ```
 
+### Shadows
+
+Shadows are described as **layers**. The active card and the deck cards use the same model, `CardShadow`, and each card takes a list of them — stack a thin sharp shadow close to the card with a wider soft one for a paper look.
+
+| `CardShadow` field | Default | Controls |
+|---|---|---|
+| `color` | — | Shadow color. Its alpha sets the strength — take it from your palette so light and dark mode each get their own |
+| `blur` | — | Softness of the edge (blur radius) |
+| `offsetY` | — | How far below the card the shadow falls |
+| `spread` | `0.dp` | Grows or shrinks the shadow before blurring. Negative values need a rounded-rectangle `cardShape` (the default) |
+
+`CardShadows` assigns layers per card. Each list is drawn in order, first layer lowest; an empty list means no shadow.
+
+| `CardShadows` field | Default | Used for |
+|---|---|---|
+| `topOverDeck` | built-in two-layer shadow | The active card while deck cards are shown under it |
+| `topAlone` | built-in two-layer shadow | The active card when no deck cards are under it — the last card (`remainingCards = 1`) |
+| `nearDeckCard` | `null` | The deck card directly behind. `null` keeps the built-in shadow, which fades with `nearCardAlpha` |
+| `farDeckCard` | `null` | The deck card at the back. `null` keeps the built-in shadow, which fades with `farCardAlpha` |
+
+```kotlin
+val sharp = CardShadow(palette.shadowSharp, blur = 2.dp, offsetY = 1.dp)
+
+style = CuteCardDefaults.style().copy(
+    shadows = CardShadows(
+        topOverDeck = listOf(sharp, CardShadow(palette.shadowSoft, blur = 16.dp, offsetY = 6.dp)),
+        topAlone = listOf(sharp, CardShadow(palette.shadowSoft, blur = 28.dp, offsetY = 12.dp)),
+        nearDeckCard = listOf(sharp),
+        farDeckCard = listOf(sharp, CardShadow(palette.shadowDeep, blur = 24.dp, offsetY = 10.dp))
+    )
+)
+```
+
+Custom lists are drawn exactly as given — they are never tied to the deck cards' opacity. The active card's shadows are hidden while it flips and come back when the flip ends. The shadows render the same on Android and iOS.
+
 ### Dark mode
 
 A pre-built dark style ships out of the box:
@@ -195,10 +230,10 @@ style = CuteCardDefaults.darkStyle()
 | Field | Controls |
 |---|---|
 | `cardShape` | Card corner shape |
-| `cardElevation` | Shadow depth of the active card |
 | `cardAspectRatio` | Width-to-height ratio (default 3:4) |
 | `cardBackgroundColor` | Card surface fill |
 | `ghostCardBackgroundColor` | Stack cards behind the active card |
+| `shadows` | Shadow layers of the active card and the deck cards — see [Shadows](#shadows) |
 | `ghostStackStyle` | Ghost card inset, offset and opacity — see [Ghost card size and opacity](#ghost-card-size-and-opacity) |
 | `cardBorderColor` | Optional card stroke (transparent = none) |
 | `wordTextStyle` / `wordTextColor` | Primary word / translation typography |

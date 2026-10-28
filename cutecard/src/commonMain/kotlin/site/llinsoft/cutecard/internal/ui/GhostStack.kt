@@ -13,12 +13,12 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.dropShadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.shadow.Shadow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.dp
+import site.llinsoft.cutecard.CardShadow
 import site.llinsoft.cutecard.CuteCardStyle
 import site.llinsoft.cutecard.internal.theme.CuteCardTokens
 
@@ -46,6 +46,7 @@ internal fun GhostStack(
                 elevation = CuteCardTokens.GhostCard3Elevation,
                 offsetY = ghost.offsetPerStep?.times(2) ?: CuteCardTokens.GhostCard3OffsetY,
                 alpha = ghost.farCardAlpha,
+                customShadows = style.shadows.farDeckCard,
                 style = style,
                 modifier = Modifier.align(Alignment.BottomCenter)
             )
@@ -57,6 +58,7 @@ internal fun GhostStack(
                 elevation = CuteCardTokens.GhostCard2Elevation,
                 offsetY = ghost.offsetPerStep ?: CuteCardTokens.GhostCard2OffsetY,
                 alpha = ghost.nearCardAlpha,
+                customShadows = style.shadows.nearDeckCard,
                 style = style,
                 modifier = Modifier.align(Alignment.BottomCenter)
             )
@@ -71,6 +73,7 @@ private fun GhostCard(
     elevation: Dp,
     offsetY: Dp,
     alpha: Float,
+    customShadows: List<CardShadow>?,
     style: CuteCardStyle,
     modifier: Modifier = Modifier
 ) {
@@ -92,14 +95,16 @@ private fun GhostCard(
         modifier = modifier
             .then(size)
             .offset(y = offsetY)
-            .dropShadow(
+            .dropShadows(
                 shape = shape,
-                shadow = Shadow(
-                    radius = elevation * 1.6f,
-                    color = Color.Black,
-                    alpha = alpha * 0.18f,
-                    offset = DpOffset(x = 0.dp, y = elevation * 0.35f),
-                    spread = 0.dp
+                shadows = customShadows?.map { it.toShadow() } ?: listOf(
+                    Shadow(
+                        radius = elevation * 1.6f,
+                        color = Color.Black,
+                        alpha = alpha * 0.18f,
+                        offset = DpOffset(x = 0.dp, y = elevation * 0.35f),
+                        spread = 0.dp
+                    )
                 )
             )
     ) {
