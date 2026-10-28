@@ -1,10 +1,11 @@
 package site.llinsoft.cutecard
 
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.remember
+import androidx.compose.runtime.SideEffect
 import androidx.compose.ui.Modifier
-import site.llinsoft.cutecard.internal.state.CuteCardStateHolder
+import site.llinsoft.cutecard.internal.ui.AudioButton
 import site.llinsoft.cutecard.internal.ui.CuteCardLayout
 import site.llinsoft.cutecard.internal.ui.DismissButton
 import site.llinsoft.cutecard.internal.ui.UnflipButton
@@ -40,6 +41,7 @@ import site.llinsoft.cutecard.internal.ui.UnflipButton
  * - Tap card (front) → flip to back
  * - Tap card (back, after settle delay) → mark as known → [onKnown]
  * - Tap dismiss button → mark as unknown → [onUnknown]
+ * - Call [CuteCardState.dismiss] from any control → mark as unknown → [onUnknown]
  * - Tap audio button → [onAudioRequested] (consumer handles playback)
  * - Set [forceFlipped] → flip the card from code (onboarding / tutorials)
  *
@@ -48,7 +50,10 @@ import site.llinsoft.cutecard.internal.ui.UnflipButton
  * @param onKnown Called after the confirm exit animation completes.
  * Advance to the next card here.
  * @param onUnknown Called after the dismiss exit animation completes.
- * Re-queue the card or advance here.
+ * Re-queue the card or advance here. Defaults to a no-op, so it
+ * can be omitted when [dismissButton] is `null`.
+ * @param state Hoisted card state. Pass one from [rememberCuteCardState] to drive the
+ * card from your own controls, e.g. a dismiss button placed anywhere.
  * @param config Behavior and animation settings. See [CuteCardConfig].
  * @param style Visual appearance. See [CuteCardStyle] and [CuteCardDefaults].
  * @param labels All user-facing strings. See [CuteCardLabels].
@@ -69,8 +74,8 @@ import site.llinsoft.cutecard.internal.ui.UnflipButton
  * [CuteCardConfig.settledLockDurationMs].
  * Intended for onboarding and tutorial demonstrations.
  * @param cardActionsEnabled Whether the user can drive the card. When `false`, tap-to-flip,
- * tap-to-confirm, the dismiss button and the unflip button are all
- * inert — the buttons stay visible so a tutorial can point at them.
+ * tap-to-confirm, the dismiss button, the unflip button and
+ * [CuteCardState.dismiss] are all inert — the buttons stay visible so a tutorial can point at them.
  * **Audio playback is unaffected** and the audio button keeps
  * working; this gates only the actions that advance the card.
  * Defaults to `forceFlipped == null`, so driving the card from
@@ -79,6 +84,22 @@ import site.llinsoft.cutecard.internal.ui.UnflipButton
  * @param onAudioRequested Called when the audio button is tapped.
  * The consumer is responsible for all audio playback.
  * `null` hides the audio button entirely.
+ * @param audioButton Composable slot for the audio control at the bottom of the full-info face.
+ * Receives [isPlaying] to render its state and an `onClick` lambda that
+ * must be called to request playback (it calls [onAudioRequested]).
+ * Defaults to the built-in audio button. Only shown when
+ * [onAudioRequested] is not `null`:
+ * ```kotlin
+ *     audioButton = { isPlaying, onClick ->
+ *         IconButton(onClick = onClick) {
+ *             Icon(
+ *                 Icons.Default.PlayArrow,
+ *                 contentDescription = "Play",
+ *                 tint = if (isPlaying) accentColor else Color.Gray
+ *             )
+ *         }
+ *     }
+ * ```
  * @param onFlipped Called when the card flip is fully complete and the back face
  * is interactive (after the flip animation and settle lock).
  * Use this to auto-play audio or update analytics.
@@ -92,8 +113,10 @@ import site.llinsoft.cutecard.internal.ui.UnflipButton
  * @param dismissButton Composable slot for the "I don't know" control shown below the card.
  * Receives an `onClick` lambda that must be called to
  * trigger the dismiss animation. Defaults to the
- * built-in text button. Use this to supply a custom
- * icon, image, or any other composable:
+ * built-in text button. `null` removes the button
+ * entirely — no space is reserved, and the card can
+ * then only be confirmed as known. Use this to supply
+ * a custom icon, image, or any other composable:
  * ```kotlin
  *     dismissButton = { onClick ->
  *         IconButton(onClick = onClick) {
@@ -101,11 +124,11 @@ import site.llinsoft.cutecard.internal.ui.UnflipButton
  *         }
  *     }
  * ```
- * @param unflipButton Composable slot for an icon shown above the card (top-right) while the
- * back face is visible. Receives an `onClick` lambda that must be called
- * to trigger the reverse flip animation back to the front face.
- * `null` (default) disables the button entirely — no space is reserved.
- * Supply any composable to enable it:
+ * @param unflipButton Composable slot for the control that reverse-flips the card back to its
+ * front face. Shown only when [CuteCardConfig.unflipButtonPosition] is not
+ * [UnflipButtonPosition.None]. Receives an `onClick` lambda that must be
+ * called to trigger the reverse flip. Defaults to the built-in rewind icon.
+ * Supply any composable to replace it:
  * ```kotlin
  *     unflipButton = { onClick ->
  *         IconButton(onClick = onClick) {
@@ -118,8 +141,9 @@ import site.llinsoft.cutecard.internal.ui.UnflipButton
 fun CuteCard(
     content: CuteCardContent,
     onKnown: () -> Unit,
-    onUnknown: () -> Unit,
+    onUnknown: () -> Unit = {},
     modifier: Modifier = Modifier,
+    state: CuteCardState = rememberCuteCardState(),
     config: CuteCardConfig = CuteCardConfig(),
     style: CuteCardStyle = CuteCardDefaults.style(),
     labels: CuteCardLabels = CuteCardLabels(),
@@ -128,21 +152,34 @@ fun CuteCard(
     forceFlipped: Boolean? = null,
     cardActionsEnabled: Boolean = (forceFlipped == null),
     onAudioRequested: (() -> Unit)? = null,
+    audioButton: @Composable (isPlaying: Boolean, onClick: () -> Unit) -> Unit = { playing, onClick ->
+        AudioButton(
+            isPlaying = playing,
+            onClick = onClick,
+            style = style.audioButtonStyle,
+            labels = labels,
+            modifier = Modifier.fillMaxWidth()
+        )
+    },
     onFlipped: (() -> Unit)? = null,
     onFlippedBack: (() -> Unit)? = null,
-    dismissButton: @Composable (onClick: () -> Unit) -> Unit = { onClick ->
+    dismissButton: (@Composable (onClick: () -> Unit) -> Unit)? = { onClick ->
         DismissButton(onClick = onClick, style = style.dismissButtonStyle, labels = labels)
     },
-    unflipButton: (@Composable (onClick: () -> Unit) -> Unit)? = null
+    unflipButton: @Composable (onClick: () -> Unit) -> Unit = { onClick ->
+        UnflipButton(onClick = onClick, style = style.dismissButtonStyle, labels = labels)
+    }
 ) {
-    val stateHolder = remember { CuteCardStateHolder() }
+    SideEffect {
+        state.actionsEnabled = cardActionsEnabled
+    }
 
     LaunchedEffect(content) {
-        stateHolder.reset()
+        state.holder.reset()
     }
 
     CuteCardLayout(
-        stateHolder = stateHolder,
+        stateHolder = state.holder,
         content = content,
         config = config,
         style = style,
@@ -152,6 +189,7 @@ fun CuteCard(
         forceFlipped = forceFlipped,
         cardActionsEnabled = cardActionsEnabled,
         onAudioRequested = onAudioRequested,
+        audioButton = audioButton,
         onFlipped = onFlipped,
         onFlippedBack = onFlippedBack,
         onKnown = onKnown,

@@ -1,7 +1,9 @@
 package site.llinsoft.cutecard.internal.theme
 
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import site.llinsoft.cutecard.CardShadow
 
 /**
  * Internal design tokens for the CuteCard component.
@@ -24,8 +26,14 @@ internal object CuteCardTokens {
     /** Default aspect ratio of the card (width:height = 3:4). */
     const val CardAspectRatio = 3f / 4f
 
-    /** Elevation of the active (top) card. */
-    val CardElevation = 6.dp
+    /**
+     * Default shadow layers of the active card: a tight contact shadow plus a wider soft one,
+     * approximating the 6 dp platform elevation shadow used before layered shadows.
+     */
+    val TopCardShadows = listOf(
+        CardShadow(color = Color.Black.copy(alpha = 0.10f), blur = 3.dp, offsetY = 1.dp),
+        CardShadow(color = Color.Black.copy(alpha = 0.12f), blur = 12.dp, offsetY = 5.dp),
+    )
 
     /** Internal padding inside the card surface. */
     val CardContentPadding = 28.dp
@@ -49,12 +57,6 @@ internal object CuteCardTokens {
 
     /** Elevation of the third ghost card. */
     val GhostCard3Elevation = 1.5.dp
-
-    /** Opacity of the second ghost card surface. */
-    const val GhostCard2Alpha = 0.85f
-
-    /** Opacity of the third ghost card surface. */
-    const val GhostCard3Alpha = 0.65f
 
     // Typography
 

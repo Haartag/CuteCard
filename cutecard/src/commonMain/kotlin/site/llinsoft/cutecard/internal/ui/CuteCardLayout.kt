@@ -19,7 +19,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.semantics.hideFromAccessibility
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
@@ -28,9 +27,10 @@ import site.llinsoft.cutecard.CuteCardConfig
 import site.llinsoft.cutecard.CuteCardContent
 import site.llinsoft.cutecard.CuteCardLabels
 import site.llinsoft.cutecard.CuteCardStyle
+import site.llinsoft.cutecard.UnflipButtonPosition
 import site.llinsoft.cutecard.internal.animation.exitModifier
 import site.llinsoft.cutecard.internal.animation.rememberFlipTransition
-import site.llinsoft.cutecard.internal.state.CuteCardState
+import site.llinsoft.cutecard.internal.state.CuteCardPhase
 import site.llinsoft.cutecard.internal.state.CuteCardStateHolder
 import site.llinsoft.cutecard.internal.state.isBackVisible
 import site.llinsoft.cutecard.internal.state.isInteractionLocked
@@ -44,12 +44,13 @@ import kotlinx.coroutines.delay
  * @param forceFlipped       Code-driven target face. Null leaves the card user-driven.
  * @param cardActionsEnabled Whether user taps drive the card. Does not gate audio.
  * @param onAudioRequested  Null hides the audio button.
+ * @param audioButton       Slot for the audio control on the full-info face.
  * @param onFlipped         Called when the back face becomes interactive (flip + settle done).
  * @param onFlippedBack     Called when the user taps the back face to confirm (before exit starts).
  * @param onKnown           Called after confirm exit animation completes.
  * @param onUnknown         Called after dismiss exit animation completes.
- * @param dismissButton     Slot shown below the card on the back face; must call its onClick to trigger exit.
- * @param unflipButton      Slot shown above the card, right-aligned, on the back face; must call its onClick to trigger unflip.
+ * @param dismissButton     Slot shown below the card on the back face; must call its onClick to trigger exit. Null removes it and its space.
+ * @param unflipButton      Slot placed per [CuteCardConfig.unflipButtonPosition] on the back face; must call its onClick to trigger unflip.
  */
 @Composable
 internal fun CuteCardLayout(
@@ -63,16 +64,17 @@ internal fun CuteCardLayout(
     forceFlipped: Boolean?,
     cardActionsEnabled: Boolean,
     onAudioRequested: (() -> Unit)?,
+    audioButton: @Composable (isPlaying: Boolean, onClick: () -> Unit) -> Unit,
     onFlipped: (() -> Unit)?,
     onFlippedBack: (() -> Unit)?,
     onKnown: () -> Unit,
     onUnknown: () -> Unit,
-    dismissButton: @Composable (onClick: () -> Unit) -> Unit,
-    unflipButton: (@Composable (onClick: () -> Unit) -> Unit)?,
+    dismissButton: (@Composable (onClick: () -> Unit) -> Unit)?,
+    unflipButton: @Composable (onClick: () -> Unit) -> Unit,
     modifier: Modifier = Modifier
 ) {
     val state = stateHolder.state
-    val frontFaceActive = state is CuteCardState.Front
+    val frontFaceActive = state is CuteCardPhase.Front
     val userInteractive = cardActionsEnabled && !state.isInteractionLocked
     val ghostCount = when {
         remainingCards == null || remainingCards >= 3 -> 2
@@ -93,8 +95,8 @@ internal fun CuteCardLayout(
 
     LaunchedEffect(state) {
         when (state) {
-            CuteCardState.Settling       -> onFlipped?.invoke()
-            CuteCardState.ExitingConfirm -> onFlippedBack?.invoke()
+            CuteCardPhase.Settling       -> onFlipped?.invoke()
+            CuteCardPhase.ExitingConfirm -> onFlippedBack?.invoke()
             else                          -> {}
         }
     }
@@ -106,8 +108,8 @@ internal fun CuteCardLayout(
 
     LaunchedEffect(forceFlipped, state) {
         when {
-            forceFlipped == true && state is CuteCardState.Front -> stateHolder.requestFlip()
-            forceFlipped == false && state is CuteCardState.Back -> stateHolder.requestUnflip()
+            forceFlipped == true && state is CuteCardPhase.Front -> stateHolder.requestFlip()
+            forceFlipped == false && state is CuteCardPhase.Back -> stateHolder.requestUnflip()
             else -> Unit
         }
     }
@@ -128,27 +130,32 @@ internal fun CuteCardLayout(
         config = config,
         onExitFinished = {
             when (stateHolder.state) {
-                CuteCardState.ExitingConfirm -> onKnown()
-                CuteCardState.ExitingDismiss -> onUnknown()
+                CuteCardPhase.ExitingConfirm -> onKnown()
+                CuteCardPhase.ExitingDismiss,
+                CuteCardPhase.ExitingDismissFromFront -> onUnknown()
                 else -> {}
             }
             stateHolder.onExitAnimationFinished()
         }
     )
 
-    // ── Shadow elevation ─────────────────────────────────────────────────────
+    // ── Shadows ──────────────────────────────────────────────────────────────
     // Hide 50 ms after flip starts; restore 50 ms before flip ends.
 
-    var shadowElevation by remember { mutableStateOf(style.cardElevation) }
+    var shadowsVisible by remember { mutableStateOf(true) }
     LaunchedEffect(state) {
-        if (state is CuteCardState.Flipping || state is CuteCardState.UnFlipping) {
+        if (state is CuteCardPhase.Flipping || state is CuteCardPhase.UnFlipping) {
             delay(50)
-            shadowElevation = 0.dp
+            shadowsVisible = false
             delay((config.flipDurationMs - 100).toLong().coerceAtLeast(0))
-            shadowElevation = style.cardElevation
+            shadowsVisible = true
         } else {
-            shadowElevation = style.cardElevation
+            shadowsVisible = true
         }
+    }
+    val topShadows = remember(style.shadows, ghostCount) {
+        val layers = if (ghostCount == 0) style.shadows.topAlone else style.shadows.topOverDeck
+        layers.map { it.toShadow() }
     }
 
     // ── Determine which content goes on which face ───────────────────────────
@@ -156,6 +163,13 @@ internal fun CuteCardLayout(
     val frontIsWordOnly = config.frontSide == CardFrontSide.Word
     val showDismissButton = state.isBackVisible
     val showUnflipButton = state.isBackVisible
+    // Wider than isBackVisible so the in-card button rotates with the back face
+    // instead of popping in after the flip. Never composed on the front face:
+    // the back face sits on top, and an invisible button there would swallow card taps.
+    val backFaceInView = showUnflipButton
+        || state is CuteCardPhase.Flipping
+        || state is CuteCardPhase.UnFlipping
+    val onUnflipClick = { if (userInteractive) stateHolder.onUnflipTap() }
 
     // ── Layout ───────────────────────────────────────────────────────────────
 
@@ -163,7 +177,7 @@ internal fun CuteCardLayout(
         modifier = modifier,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        if (unflipButton != null) {
+        if (config.unflipButtonPosition == UnflipButtonPosition.AboveCard) {
             Box(
                 contentAlignment = Alignment.CenterEnd,
                 modifier = Modifier
@@ -173,7 +187,7 @@ internal fun CuteCardLayout(
                     .alpha(if (showUnflipButton) 1f else 0f)
                     .semantics { if (!showUnflipButton) hideFromAccessibility() }
             ) {
-                unflipButton { if (userInteractive) stateHolder.onUnflipTap() }
+                unflipButton(onUnflipClick)
             }
         }
 
@@ -196,10 +210,9 @@ internal fun CuteCardLayout(
                     .then(exit)
                     .fillMaxWidth()
                     .aspectRatio(style.cardAspectRatio)
-                    .shadow(
-                        elevation = shadowElevation,
-                        shape = style.cardShape,
-                        clip = false
+                    .dropShadows(
+                        shadows = if (shadowsVisible) topShadows else emptyList(),
+                        shape = style.cardShape
                     )
                     .clickable(
                         enabled = userInteractive,
@@ -227,7 +240,8 @@ internal fun CuteCardLayout(
                         style = style,
                         labels = labels,
                         isPlaying = isPlaying,
-                        onAudioRequested = if (frontFaceActive) onAudioRequested else null
+                        onAudioRequested = if (frontFaceActive) onAudioRequested else null,
+                        audioButton = audioButton
                     )
                 }
 
@@ -248,20 +262,31 @@ internal fun CuteCardLayout(
                         style = style,
                         labels = labels,
                         isPlaying = isPlaying,
-                        onAudioRequested = if (!frontFaceActive) onAudioRequested else null
+                        onAudioRequested = if (!frontFaceActive) onAudioRequested else null,
+                        audioButton = audioButton
                     )
+
+                    if (config.unflipButtonPosition == UnflipButtonPosition.CardTopEnd && backFaceInView) {
+                        // No extra padding: the button's own tap target insets the icon
+                        // to roughly the language pill's distance from the corner.
+                        Box(modifier = Modifier.align(Alignment.TopEnd)) {
+                            unflipButton(onUnflipClick)
+                        }
+                    }
                 }
             }
 
         }
 
-        Box(
-            modifier = Modifier
-                .padding(top = CuteCardTokens.DismissButtonTopPadding)
-                .alpha(if (showDismissButton) 1f else 0f)
-                .semantics { if (!showDismissButton) hideFromAccessibility() }
-        ) {
-            dismissButton { if (userInteractive) stateHolder.onDismissTap() }
+        if (dismissButton != null) {
+            Box(
+                modifier = Modifier
+                    .padding(top = CuteCardTokens.DismissButtonTopPadding)
+                    .alpha(if (showDismissButton) 1f else 0f)
+                    .semantics { if (!showDismissButton) hideFromAccessibility() }
+            ) {
+                dismissButton { if (userInteractive) stateHolder.onDismissTap() }
+            }
         }
     }
 }
@@ -276,6 +301,7 @@ private fun CardFrontFace(
     labels: CuteCardLabels,
     isPlaying: Boolean,
     onAudioRequested: (() -> Unit)?,
+    audioButton: @Composable (isPlaying: Boolean, onClick: () -> Unit) -> Unit,
     modifier: Modifier = Modifier
 ) {
     if (frontIsWordOnly) {
@@ -292,6 +318,7 @@ private fun CardFrontFace(
             labels = labels,
             isPlaying = isPlaying,
             onAudioRequested = onAudioRequested,
+            audioButton = audioButton,
             modifier = modifier
         )
     }
@@ -305,6 +332,7 @@ private fun CardBackFace(
     labels: CuteCardLabels,
     isPlaying: Boolean,
     onAudioRequested: (() -> Unit)?,
+    audioButton: @Composable (isPlaying: Boolean, onClick: () -> Unit) -> Unit,
     modifier: Modifier = Modifier
 ) {
     if (frontIsWordOnly) {
@@ -314,6 +342,7 @@ private fun CardBackFace(
             labels = labels,
             isPlaying = isPlaying,
             onAudioRequested = onAudioRequested,
+            audioButton = audioButton,
             modifier = modifier
         )
     } else {

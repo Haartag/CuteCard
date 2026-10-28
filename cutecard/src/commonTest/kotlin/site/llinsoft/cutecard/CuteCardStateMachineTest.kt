@@ -1,6 +1,6 @@
 package site.llinsoft.cutecard
 
-import site.llinsoft.cutecard.internal.state.CuteCardState
+import site.llinsoft.cutecard.internal.state.CuteCardPhase
 import site.llinsoft.cutecard.internal.state.CuteCardStateHolder
 import site.llinsoft.cutecard.internal.state.isBackVisible
 import site.llinsoft.cutecard.internal.state.isInteractionLocked
@@ -17,7 +17,7 @@ class CuteCardStateMachineTest {
 
     @Test
     fun initialStateIsFront() {
-        assertEquals(CuteCardState.Front, holder().state)
+        assertEquals(CuteCardPhase.Front, holder().state)
     }
 
     // ── Front → Flipping ─────────────────────────────────────────────────────
@@ -26,7 +26,7 @@ class CuteCardStateMachineTest {
     fun tapCardFromFrontStartsFlip() {
         val h = holder()
         h.onCardTap()
-        assertEquals(CuteCardState.Flipping, h.state)
+        assertEquals(CuteCardPhase.Flipping, h.state)
     }
 
     // ── Flipping → Settling ───────────────────────────────────────────────────
@@ -36,7 +36,7 @@ class CuteCardStateMachineTest {
         val h = holder()
         h.onCardTap()
         h.onFlipAnimationFinished()
-        assertEquals(CuteCardState.Settling, h.state)
+        assertEquals(CuteCardPhase.Settling, h.state)
     }
 
     @Test
@@ -55,7 +55,7 @@ class CuteCardStateMachineTest {
         h.onCardTap()
         h.onFlipAnimationFinished()
         h.onSettled()
-        assertEquals(CuteCardState.Back, h.state)
+        assertEquals(CuteCardPhase.Back, h.state)
     }
 
     @Test
@@ -74,7 +74,7 @@ class CuteCardStateMachineTest {
         val h = holder()
         h.onCardTap(); h.onFlipAnimationFinished(); h.onSettled()
         h.onCardTap()
-        assertEquals(CuteCardState.ExitingConfirm, h.state)
+        assertEquals(CuteCardPhase.ExitingConfirm, h.state)
     }
 
     // ── Back → UnFlipping ─────────────────────────────────────────────────────
@@ -84,7 +84,7 @@ class CuteCardStateMachineTest {
         val h = holder()
         h.onCardTap(); h.onFlipAnimationFinished(); h.onSettled()
         h.onUnflipTap()
-        assertEquals(CuteCardState.UnFlipping, h.state)
+        assertEquals(CuteCardPhase.UnFlipping, h.state)
     }
 
     // ── UnFlipping → Front ────────────────────────────────────────────────────
@@ -95,14 +95,14 @@ class CuteCardStateMachineTest {
         h.onCardTap(); h.onFlipAnimationFinished(); h.onSettled()
         h.onUnflipTap()
         h.onUnflipAnimationFinished()
-        assertEquals(CuteCardState.Front, h.state)
+        assertEquals(CuteCardPhase.Front, h.state)
     }
 
     @Test
     fun unflipTapFromFrontIsIgnored() {
         val h = holder()
         h.onUnflipTap()
-        assertEquals(CuteCardState.Front, h.state)
+        assertEquals(CuteCardPhase.Front, h.state)
     }
 
     @Test
@@ -110,14 +110,14 @@ class CuteCardStateMachineTest {
         val h = holder()
         h.onCardTap()
         h.onUnflipTap()
-        assertEquals(CuteCardState.Flipping, h.state)
+        assertEquals(CuteCardPhase.Flipping, h.state)
     }
 
     @Test
     fun unflipAnimationFinishedOutsideUnFlippingIsIgnored() {
         val h = holder()
         h.onUnflipAnimationFinished()
-        assertEquals(CuteCardState.Front, h.state)
+        assertEquals(CuteCardPhase.Front, h.state)
     }
 
     // ── Back → ExitingDismiss ─────────────────────────────────────────────────
@@ -127,7 +127,7 @@ class CuteCardStateMachineTest {
         val h = holder()
         h.onCardTap(); h.onFlipAnimationFinished(); h.onSettled()
         h.onDismissTap()
-        assertEquals(CuteCardState.ExitingDismiss, h.state)
+        assertEquals(CuteCardPhase.ExitingDismiss, h.state)
     }
 
     // ── ExitingConfirm → Gone ─────────────────────────────────────────────────
@@ -138,7 +138,7 @@ class CuteCardStateMachineTest {
         h.onCardTap(); h.onFlipAnimationFinished(); h.onSettled()
         h.onCardTap()
         h.onExitAnimationFinished()
-        assertEquals(CuteCardState.Gone, h.state)
+        assertEquals(CuteCardPhase.Gone, h.state)
     }
 
     // ── ExitingDismiss → Gone ─────────────────────────────────────────────────
@@ -149,7 +149,7 @@ class CuteCardStateMachineTest {
         h.onCardTap(); h.onFlipAnimationFinished(); h.onSettled()
         h.onDismissTap()
         h.onExitAnimationFinished()
-        assertEquals(CuteCardState.Gone, h.state)
+        assertEquals(CuteCardPhase.Gone, h.state)
     }
 
     // ── Reset ─────────────────────────────────────────────────────────────────
@@ -166,7 +166,7 @@ class CuteCardStateMachineTest {
             val h = holder()
             h.setup()
             h.reset()
-            assertEquals(CuteCardState.Front, h.state, "reset() should return to Front")
+            assertEquals(CuteCardPhase.Front, h.state, "reset() should return to Front")
         }
     }
 
@@ -177,7 +177,7 @@ class CuteCardStateMachineTest {
         val h = holder()
         h.onCardTap()                         // → Flipping
         h.onCardTap()                         // should be ignored
-        assertEquals(CuteCardState.Flipping, h.state)
+        assertEquals(CuteCardPhase.Flipping, h.state)
     }
 
     @Test
@@ -185,14 +185,14 @@ class CuteCardStateMachineTest {
         val h = holder()
         h.onCardTap(); h.onFlipAnimationFinished()   // → Settling
         h.onCardTap()
-        assertEquals(CuteCardState.Settling, h.state)
+        assertEquals(CuteCardPhase.Settling, h.state)
     }
 
     @Test
     fun dismissDuringFrontIsIgnored() {
         val h = holder()
         h.onDismissTap()
-        assertEquals(CuteCardState.Front, h.state)
+        assertEquals(CuteCardPhase.Front, h.state)
     }
 
     @Test
@@ -200,21 +200,21 @@ class CuteCardStateMachineTest {
         val h = holder()
         h.onCardTap()
         h.onDismissTap()
-        assertEquals(CuteCardState.Flipping, h.state)
+        assertEquals(CuteCardPhase.Flipping, h.state)
     }
 
     @Test
     fun flipAnimationFinishedOutsideFlippingIsIgnored() {
         val h = holder()
         h.onFlipAnimationFinished()
-        assertEquals(CuteCardState.Front, h.state)
+        assertEquals(CuteCardPhase.Front, h.state)
     }
 
     @Test
     fun onSettledOutsideSettlingIsIgnored() {
         val h = holder()
         h.onSettled()
-        assertEquals(CuteCardState.Front, h.state)
+        assertEquals(CuteCardPhase.Front, h.state)
     }
 
     @Test
@@ -222,91 +222,91 @@ class CuteCardStateMachineTest {
         val h = holder()
         h.onCardTap(); h.onFlipAnimationFinished(); h.onSettled()  // → Back
         h.onExitAnimationFinished()
-        assertEquals(CuteCardState.Back, h.state)
+        assertEquals(CuteCardPhase.Back, h.state)
     }
 
     // ── isInteractionLocked extension ─────────────────────────────────────────
 
     @Test
     fun frontIsNotLocked() {
-        assertFalse(CuteCardState.Front.isInteractionLocked)
+        assertFalse(CuteCardPhase.Front.isInteractionLocked)
     }
 
     @Test
     fun backIsNotLocked() {
-        assertFalse(CuteCardState.Back.isInteractionLocked)
+        assertFalse(CuteCardPhase.Back.isInteractionLocked)
     }
 
     @Test
     fun flippingIsLocked() {
-        assertTrue(CuteCardState.Flipping.isInteractionLocked)
+        assertTrue(CuteCardPhase.Flipping.isInteractionLocked)
     }
 
     @Test
     fun unFlippingIsLocked() {
-        assertTrue(CuteCardState.UnFlipping.isInteractionLocked)
+        assertTrue(CuteCardPhase.UnFlipping.isInteractionLocked)
     }
 
     @Test
     fun settlingIsLocked() {
-        assertTrue(CuteCardState.Settling.isInteractionLocked)
+        assertTrue(CuteCardPhase.Settling.isInteractionLocked)
     }
 
     @Test
     fun exitingConfirmIsLocked() {
-        assertTrue(CuteCardState.ExitingConfirm.isInteractionLocked)
+        assertTrue(CuteCardPhase.ExitingConfirm.isInteractionLocked)
     }
 
     @Test
     fun exitingDismissIsLocked() {
-        assertTrue(CuteCardState.ExitingDismiss.isInteractionLocked)
+        assertTrue(CuteCardPhase.ExitingDismiss.isInteractionLocked)
     }
 
     @Test
     fun goneIsLocked() {
-        assertTrue(CuteCardState.Gone.isInteractionLocked)
+        assertTrue(CuteCardPhase.Gone.isInteractionLocked)
     }
 
     // ── isBackVisible extension ───────────────────────────────────────────────
 
     @Test
     fun frontIsNotBackVisible() {
-        assertFalse(CuteCardState.Front.isBackVisible)
+        assertFalse(CuteCardPhase.Front.isBackVisible)
     }
 
     @Test
     fun flippingIsNotBackVisible() {
-        assertFalse(CuteCardState.Flipping.isBackVisible)
+        assertFalse(CuteCardPhase.Flipping.isBackVisible)
     }
 
     @Test
     fun unFlippingIsNotBackVisible() {
-        assertFalse(CuteCardState.UnFlipping.isBackVisible)
+        assertFalse(CuteCardPhase.UnFlipping.isBackVisible)
     }
 
     @Test
     fun settlingIsBackVisible() {
-        assertTrue(CuteCardState.Settling.isBackVisible)
+        assertTrue(CuteCardPhase.Settling.isBackVisible)
     }
 
     @Test
     fun backIsBackVisible() {
-        assertTrue(CuteCardState.Back.isBackVisible)
+        assertTrue(CuteCardPhase.Back.isBackVisible)
     }
 
     @Test
     fun exitingConfirmIsBackVisible() {
-        assertTrue(CuteCardState.ExitingConfirm.isBackVisible)
+        assertTrue(CuteCardPhase.ExitingConfirm.isBackVisible)
     }
 
     @Test
     fun exitingDismissIsBackVisible() {
-        assertTrue(CuteCardState.ExitingDismiss.isBackVisible)
+        assertTrue(CuteCardPhase.ExitingDismiss.isBackVisible)
     }
 
     @Test
     fun goneIsNotBackVisible() {
-        assertFalse(CuteCardState.Gone.isBackVisible)
+        assertFalse(CuteCardPhase.Gone.isBackVisible)
     }
 
     // ── Code-driven flip ──────────────────────────────────────────────────────
@@ -315,7 +315,7 @@ class CuteCardStateMachineTest {
     fun requestFlipFromFrontStartsFlip() {
         val h = holder()
         h.requestFlip()
-        assertEquals(CuteCardState.Flipping, h.state)
+        assertEquals(CuteCardPhase.Flipping, h.state)
     }
 
     @Test
@@ -323,7 +323,7 @@ class CuteCardStateMachineTest {
         val h = holder()
         h.requestFlip()
         h.requestFlip()
-        assertEquals(CuteCardState.Flipping, h.state)
+        assertEquals(CuteCardPhase.Flipping, h.state)
     }
 
     @Test
@@ -331,7 +331,7 @@ class CuteCardStateMachineTest {
         val h = holder()
         h.requestFlip(); h.onFlipAnimationFinished()
         h.requestFlip()
-        assertEquals(CuteCardState.Settling, h.state)
+        assertEquals(CuteCardPhase.Settling, h.state)
     }
 
     @Test
@@ -339,7 +339,7 @@ class CuteCardStateMachineTest {
         val h = holder()
         h.requestFlip(); h.onFlipAnimationFinished(); h.onSettled()
         h.requestFlip()
-        assertEquals(CuteCardState.Back, h.state)
+        assertEquals(CuteCardPhase.Back, h.state)
     }
 
     @Test
@@ -348,7 +348,7 @@ class CuteCardStateMachineTest {
         h.requestFlip(); h.onFlipAnimationFinished(); h.onSettled()
         h.onCardTap(); h.onExitAnimationFinished()
         h.requestFlip()
-        assertEquals(CuteCardState.Gone, h.state)
+        assertEquals(CuteCardPhase.Gone, h.state)
     }
 
     @Test
@@ -356,14 +356,14 @@ class CuteCardStateMachineTest {
         val h = holder()
         h.requestFlip(); h.onFlipAnimationFinished(); h.onSettled()
         h.requestUnflip()
-        assertEquals(CuteCardState.UnFlipping, h.state)
+        assertEquals(CuteCardPhase.UnFlipping, h.state)
     }
 
     @Test
     fun requestUnflipFromFrontIsIgnored() {
         val h = holder()
         h.requestUnflip()
-        assertEquals(CuteCardState.Front, h.state)
+        assertEquals(CuteCardPhase.Front, h.state)
     }
 
     @Test
@@ -371,7 +371,7 @@ class CuteCardStateMachineTest {
         val h = holder()
         h.requestFlip(); h.onFlipAnimationFinished()
         h.requestUnflip()
-        assertEquals(CuteCardState.Settling, h.state)
+        assertEquals(CuteCardPhase.Settling, h.state)
     }
 
     @Test
@@ -380,7 +380,7 @@ class CuteCardStateMachineTest {
         h.requestFlip(); h.onFlipAnimationFinished(); h.onSettled()
         h.requestUnflip()
         h.requestUnflip()
-        assertEquals(CuteCardState.UnFlipping, h.state)
+        assertEquals(CuteCardPhase.UnFlipping, h.state)
     }
 
     @Test
@@ -389,21 +389,21 @@ class CuteCardStateMachineTest {
         h.requestFlip(); h.onFlipAnimationFinished(); h.onSettled()
         h.reset()
         h.requestFlip()
-        assertEquals(CuteCardState.Flipping, h.state)
+        assertEquals(CuteCardPhase.Flipping, h.state)
     }
 
     @Test
     fun codeDrivenRoundTripReturnsToFront() {
         val h = holder()
         h.requestFlip()
-        assertEquals(CuteCardState.Flipping, h.state)
+        assertEquals(CuteCardPhase.Flipping, h.state)
         h.onFlipAnimationFinished()
         h.onSettled()
-        assertEquals(CuteCardState.Back, h.state)
+        assertEquals(CuteCardPhase.Back, h.state)
         h.requestUnflip()
-        assertEquals(CuteCardState.UnFlipping, h.state)
+        assertEquals(CuteCardPhase.UnFlipping, h.state)
         h.onUnflipAnimationFinished()
-        assertEquals(CuteCardState.Front, h.state)
+        assertEquals(CuteCardPhase.Front, h.state)
     }
 
     @Test
@@ -411,6 +411,75 @@ class CuteCardStateMachineTest {
         val h = holder()
         h.requestFlip(); h.onFlipAnimationFinished(); h.onSettled()
         h.requestFlip()
-        assertFalse(h.state is CuteCardState.ExitingConfirm)
+        assertFalse(h.state is CuteCardPhase.ExitingConfirm)
+    }
+
+    // ── Code-driven dismiss ───────────────────────────────────────────────────
+
+    @Test
+    fun requestDismissFromFrontExitsWithoutFlipping() {
+        val h = holder()
+        h.requestDismiss()
+        assertEquals(CuteCardPhase.ExitingDismissFromFront, h.state)
+        assertFalse(h.state.isBackVisible)
+    }
+
+    @Test
+    fun requestDismissFromBackStartsDismissExit() {
+        val h = holder()
+        h.onCardTap(); h.onFlipAnimationFinished(); h.onSettled()
+        h.requestDismiss()
+        assertEquals(CuteCardPhase.ExitingDismiss, h.state)
+    }
+
+    @Test
+    fun requestDismissDuringAnimationsIsIgnored() {
+        fun setup(block: CuteCardStateHolder.() -> Unit) = block
+        val setups = listOf(
+            setup { onCardTap() } to CuteCardPhase.Flipping,
+            setup { onCardTap(); onFlipAnimationFinished() } to CuteCardPhase.Settling,
+            setup { onCardTap(); onFlipAnimationFinished(); onSettled(); onUnflipTap() } to CuteCardPhase.UnFlipping,
+            setup { requestDismiss() } to CuteCardPhase.ExitingDismissFromFront,
+        )
+        for ((prepare, expected) in setups) {
+            val h = holder()
+            h.prepare()
+            h.requestDismiss()
+            assertEquals(expected, h.state)
+        }
+    }
+
+    @Test
+    fun exitAnimationFinishedFromFrontDismissTransitionsToGone() {
+        val h = holder()
+        h.requestDismiss()
+        h.onExitAnimationFinished()
+        assertEquals(CuteCardPhase.Gone, h.state)
+    }
+
+    @Test
+    fun canRequestDismissOnlyOnRestingFaces() {
+        val h = holder()
+        assertTrue(h.canRequestDismiss)
+        h.onCardTap()
+        assertFalse(h.canRequestDismiss)
+        h.onFlipAnimationFinished()
+        assertFalse(h.canRequestDismiss)
+        h.onSettled()
+        assertTrue(h.canRequestDismiss)
+        h.requestDismiss()
+        assertFalse(h.canRequestDismiss)
+    }
+
+    @Test
+    fun dismissTapFromFrontStillIgnored() {
+        val h = holder()
+        h.onDismissTap()
+        assertEquals(CuteCardPhase.Front, h.state)
+    }
+
+    @Test
+    fun exitingDismissFromFrontIsLocked() {
+        assertTrue(CuteCardPhase.ExitingDismissFromFront.isInteractionLocked)
     }
 }

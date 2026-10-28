@@ -9,7 +9,7 @@ import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.graphicsLayer
 import site.llinsoft.cutecard.ExitAnimation
 import site.llinsoft.cutecard.CuteCardConfig
-import site.llinsoft.cutecard.internal.state.CuteCardState
+import site.llinsoft.cutecard.internal.state.CuteCardPhase
 
 /**
  * Slide offset expressed as a fraction of the card's own height.
@@ -32,7 +32,7 @@ private const val ScaleFadeTargetScale = 1.08f
  * so it triggers the moment the state transitions to an exiting state.
  *
  * [onExitFinished] is called once the exit animation settles —
- * the state holder uses this to transition to [CuteCardState.Gone].
+ * the state holder uses this to transition to [CuteCardPhase.Gone].
  *
  * @param state Current card state.
  * @param config Consumer config — provides exit animation choice and duration.
@@ -40,12 +40,13 @@ private const val ScaleFadeTargetScale = 1.08f
  */
 @Composable
 internal fun exitModifier(
-    state: CuteCardState,
+    state: CuteCardPhase,
     config: CuteCardConfig,
     onExitFinished: () -> Unit
 ): Modifier {
-    val isExitingConfirm = state is CuteCardState.ExitingConfirm
-    val isExitingDismiss = state is CuteCardState.ExitingDismiss
+    val isExitingConfirm = state is CuteCardPhase.ExitingConfirm
+    val isExitingDismiss = state is CuteCardPhase.ExitingDismiss
+        || state is CuteCardPhase.ExitingDismissFromFront
     val isExiting = isExitingConfirm || isExitingDismiss
 
     // Always call both so each Animatable initialises at rest before an exit triggers —

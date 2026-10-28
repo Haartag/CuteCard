@@ -12,22 +12,31 @@ One component. Two exercise modes. Fully customisable. Zero hardcoded strings.
 - [Interaction model](#interaction-model)
 - [Exercise modes](#exercise-modes)
 - [API reference](#api-reference)
-  - [CuteCard](#flashcard-composable)
-  - [CuteCardContent](#flashcardcontent)
-  - [CuteCardConfig](#flashcardconfig)
-  - [CuteCardStyle](#flashcardstyle)
-  - [CuteCardLabels](#flashcardlabels)
-  - [CuteCardDefaults](#flashcarddefaults)
+  - [CuteCard](#cutecard-composable)
+  - [CuteCardState](#cutecardstate)
+  - [CuteCardContent](#cutecardcontent)
+  - [CuteCardConfig](#cutecardconfig)
+  - [CuteCardStyle](#cutecardstyle)
+    - [Per-side word text style](#per-side-word-text-style)
+    - [Word placement](#word-placement)
+    - [Shadows](#shadows)
+    - [GhostStackStyle](#ghoststackstyle)
+  - [CuteCardLabels](#cutecardlabels)
+  - [CuteCardDefaults](#cutecarddefaults)
   - [Enums](#enums)
 - [Customisation](#customisation)
   - [Appearance](#appearance)
   - [Dark mode](#dark-mode)
   - [Animation](#animation)
   - [Labels and localisation](#labels-and-localisation)
+- [Flip callbacks](#flip-callbacks)
 - [Unflip button](#unflip-button)
+- [Dismiss button](#dismiss-button)
+- [Dismiss from your own controls](#dismiss-from-your-own-controls)
 - [Programmatic flip](#programmatic-flip)
 - [Audio playback](#audio-playback)
 - [Ghost stack](#ghost-stack)
+  - [Ghost card size and opacity](#ghost-card-size-and-opacity)
 - [Responsibility split](#responsibility-split)
 - [Architecture overview](#architecture-overview)
 
@@ -42,7 +51,7 @@ The library is published to Maven Central. Add the dependency to the common sour
 kotlin {
     sourceSets {
         commonMain.dependencies {
-            implementation("site.llinsoft:cutecard:0.4.0")
+            implementation("site.llinsoft:cutecard:0.5.0")
         }
     }
 }
@@ -101,6 +110,7 @@ Front face — tap card → Back face (full info revealed)
 - Tap card (back) → `onKnown()`
 - Tap unflip icon → Front face (reverse flip, card stays in deck)
 - Tap "I don't know" → `onUnknown()`
+- Call `cardState.dismiss()` from any control (either face) → `onUnknown()`
 
 | Action | Result |
 |---|---|
@@ -108,6 +118,7 @@ Front face — tap card → Back face (full info revealed)
 | Tap card (back, after lock) | Triggers confirm exit animation → calls `onKnown` |
 | Tap unflip button | Plays the flip animation in reverse → returns to front face. Card stays in the deck |
 | Tap dismiss button | Triggers dismiss exit animation → calls `onUnknown` |
+| Call `cardState.dismiss()` | Same as the dismiss button, but also works on the front face. See [Dismiss from your own controls](#dismiss-from-your-own-controls) |
 | Tap audio button | Calls `onAudioRequested`. Does not flip the card |
 | Any of the above, with `cardActionsEnabled = false` | Ignored. The dismiss and unflip buttons stay visible but inert. **The audio button keeps working** |
 | Set `forceFlipped` | Flips the card from code without a tap. See [Programmatic flip](#programmatic-flip) |
@@ -133,7 +144,7 @@ CuteCard(
 )
 ```
 
-**Front face:** word (`hierro`), phonetics, word class. Tap to flip.  
+**Front face:** word (`hierro`) only. Tap to flip.  
 **Back face:** translation (`iron`), phonetics, word class, audio button. Tap to mark as known.  
 **Below card (back only):** "I don't know" button.
 
@@ -163,8 +174,9 @@ The audio button always lives on the full-info face, regardless of which mode is
 fun CuteCard(
     content: CuteCardContent,
     onKnown: () -> Unit,
-    onUnknown: () -> Unit,
+    onUnknown: () -> Unit = {},
     modifier: Modifier = Modifier,
+    state: CuteCardState = rememberCuteCardState(),
     config: CuteCardConfig = CuteCardConfig(),
     style: CuteCardStyle = CuteCardDefaults.style(),
     labels: CuteCardLabels = CuteCardLabels(),
@@ -173,10 +185,11 @@ fun CuteCard(
     forceFlipped: Boolean? = null,
     cardActionsEnabled: Boolean = (forceFlipped == null),
     onAudioRequested: (() -> Unit)? = null,
+    audioButton: @Composable (isPlaying: Boolean, onClick: () -> Unit) -> Unit = { /* built-in audio button */ },
     onFlipped: (() -> Unit)? = null,
     onFlippedBack: (() -> Unit)? = null,
-    dismissButton: @Composable (onClick: () -> Unit) -> Unit = { /* built-in text button */ },
-    unflipButton: (@Composable (onClick: () -> Unit) -> Unit)? = null
+    dismissButton: (@Composable (onClick: () -> Unit) -> Unit)? = { /* built-in text button */ },
+    unflipButton: @Composable (onClick: () -> Unit) -> Unit = { /* built-in rewind icon */ }
 )
 ```
 
@@ -184,20 +197,43 @@ fun CuteCard(
 |---|---|---|
 | `content` | `CuteCardContent` | All data for this card. Changing this resets the card to front state |
 | `onKnown` | `() -> Unit` | Called after confirm exit animation completes. Advance the deck here |
-| `onUnknown` | `() -> Unit` | Called after dismiss exit animation completes. Re-queue or advance here |
+| `onUnknown` | `() -> Unit` | Called after dismiss exit animation completes. Re-queue or advance here. Defaults to a no-op — omit it when `dismissButton = null` |
 | `modifier` | `Modifier` | Applied to the root layout |
+| `state` | `CuteCardState` | Hoisted card state. Pass one from `rememberCuteCardState()` to dismiss the card from your own controls. See [Dismiss from your own controls](#dismiss-from-your-own-controls) |
 | `config` | `CuteCardConfig` | Behavior and animation settings |
 | `style` | `CuteCardStyle` | Visual appearance |
 | `labels` | `CuteCardLabels` | All user-facing strings |
 | `isPlaying` | `Boolean` | Drives audio button visual state. Owned by the consumer |
 | `remainingCards` | `Int?` | Number of cards left in the deck including this one. `null` (default) = always show two ghost cards. Pass the count to shrink the stack: `2` → one ghost, `1` → no ghost |
 | `forceFlipped` | `Boolean?` | Flips the card from code. `null` (default) = user-driven, `true` = show back face, `false` = show front face. A **target**, not a one-shot event — see [Programmatic flip](#programmatic-flip) |
-| `cardActionsEnabled` | `Boolean` | When `false`, tap-to-flip, tap-to-confirm, the dismiss button and the unflip button are inert. **Audio is unaffected.** Defaults to `forceFlipped == null` |
+| `cardActionsEnabled` | `Boolean` | When `false`, tap-to-flip, tap-to-confirm, the dismiss button, the unflip button and `CuteCardState.dismiss()` are inert. **Audio is unaffected.** Defaults to `forceFlipped == null` |
 | `onAudioRequested` | `(() -> Unit)?` | Called on audio button tap. `null` hides the button entirely |
+| `audioButton` | `@Composable (isPlaying: Boolean, onClick: () -> Unit) -> Unit` | Slot for a custom audio control. Receives `isPlaying` and an `onClick` that **must be called** to request playback. Defaults to the built-in button. Shown only when `onAudioRequested` is non-null. See [Custom audio button](#custom-audio-button) |
 | `onFlipped` | `(() -> Unit)?` | Called when the back face becomes interactive (flip animation done + settle lock expired). `null` = no callback |
 | `onFlippedBack` | `(() -> Unit)?` | Called when the user taps the back face to confirm (before exit animation). `null` = no callback |
-| `dismissButton` | `@Composable (onClick: () -> Unit) -> Unit` | Slot for a custom dismiss control. The `onClick` lambda **must be called** to trigger the dismiss animation. Defaults to the built-in text button. While hidden (front face), the slot is rendered invisibly so the card height stays constant |
-| `unflipButton` | `(@Composable (onClick: () -> Unit) -> Unit)?` | Slot for an icon shown above the card (top-right) when the back face is visible. The `onClick` lambda **must be called** to trigger the reverse flip. While hidden (front face), the slot is rendered invisibly so the card height stays constant. `null` (default) disables the button entirely — no space is reserved |
+| `dismissButton` | `(@Composable (onClick: () -> Unit) -> Unit)?` | Slot for a custom dismiss control. The `onClick` lambda **must be called** to trigger the dismiss animation. Defaults to the built-in text button. While hidden (front face), the slot is rendered invisibly so the card height stays constant. `null` removes the button entirely — no space is reserved, and `onUnknown` is never called |
+| `unflipButton` | `@Composable (onClick: () -> Unit) -> Unit` | Slot for the reverse-flip control. Defaults to the built-in rewind icon. Shown only when `config.unflipButtonPosition` is not `None`. The `onClick` lambda **must be called** to trigger the reverse flip. See [Unflip button](#unflip-button) |
+
+---
+
+### `CuteCardState`
+
+Hoisted state for driving the card from your own controls. See [Dismiss from your own controls](#dismiss-from-your-own-controls).
+
+```kotlin
+@Composable
+fun rememberCuteCardState(): CuteCardState
+
+class CuteCardState {
+    val canDismiss: Boolean   // observable — true when dismiss() would take effect
+    fun dismiss()             // plays dismissExit, then calls onUnknown
+}
+```
+
+| Member | Description |
+|---|---|
+| `canDismiss` | `true` when the card rests on either face and `cardActionsEnabled` is `true`. `false` while flipping, settling or exiting |
+| `dismiss()` | Marks the card as unknown, exactly like the built-in dismiss button, but from either face. Ignored when `canDismiss` is `false` |
 
 ---
 
@@ -211,7 +247,7 @@ data class CuteCardContent(
     val translation: String,
     val phonetics: String? = null,        // null = hidden
     val wordClass: String? = null,        // null = hidden
-    val audioUrl: String? = null,         // null = audio button hidden
+    val audioUrl: String? = null,         // never read by the library — for your onAudioRequested
     val sourceLanguage: String? = null,   // null = hidden
     val targetLanguage: String? = null    // null = hidden
 )
@@ -241,7 +277,8 @@ data class CuteCardConfig(
     val exitDurationMs: Int = 300,
     val flipDirection: FlipDirection = FlipDirection.Horizontal,
     val confirmExit: ExitAnimation = ExitAnimation.SlideUp,
-    val dismissExit: ExitAnimation = ExitAnimation.SlideDown
+    val dismissExit: ExitAnimation = ExitAnimation.SlideDown,
+    val unflipButtonPosition: UnflipButtonPosition = UnflipButtonPosition.None
 )
 ```
 
@@ -254,6 +291,7 @@ data class CuteCardConfig(
 | `flipDirection` | `Horizontal` | `Horizontal` = rotateY, `Vertical` = rotateX |
 | `confirmExit` | `SlideUp` | Exit animation when card is marked as known |
 | `dismissExit` | `SlideDown` | Exit animation when card is marked as unknown |
+| `unflipButtonPosition` | `None` | Where the unflip button appears: `None`, `AboveCard`, `CardTopEnd`. See [Unflip button](#unflip-button) |
 
 ---
 
@@ -264,21 +302,129 @@ Controls the full visual appearance of the card. Build via `CuteCardDefaults.sty
 ```kotlin
 data class CuteCardStyle(
     val cardShape: Shape,
-    val cardElevation: Dp,
     val cardAspectRatio: Float,
     val cardBackgroundColor: Color,
     val ghostCardBackgroundColor: Color,
     val cardBorderColor: Color,
     val wordTextStyle: TextStyle,
     val wordTextColor: Color,
+    val wordAutoSizeMinFontSize: TextUnit,  // smallest size the word shrinks to when it doesn't fit
     val phoneticsTextStyle: TextStyle,
     val phoneticsTextColor: Color,
     val wordClassPillStyle: WordClassPillStyle,
     val audioButtonStyle: AudioButtonStyle,
     val dismissButtonStyle: DismissButtonStyle,
-    val languagePillStyle: LanguagePillStyle
+    val languagePillStyle: LanguagePillStyle,
+    val contentPadding: Dp = 28.dp,
+    val reservedTopHeight: Dp = 0.dp,
+    val reservedBottomHeight: Dp = 0.dp,
+    val wordVerticalPosition: WordVerticalPosition = WordVerticalPosition.Raised,
+    val backWordTextStyle: TextStyle? = null,  // back-face overrides, merged over wordTextStyle
+    val backWordTextColor: Color? = null,      // back-face text color, null = wordTextColor
+    val ghostStackStyle: GhostStackStyle = GhostStackStyle(),
+    val shadows: CardShadows = CardShadows()
 )
 ```
+
+#### Per-side word text style
+
+The back face can use a different style for its main text. `backWordTextStyle` is **merged over** `wordTextStyle`, so set only what differs; `backWordTextColor` overrides the color. Both fall back to the base values when `null`:
+
+```kotlin
+style = CuteCardDefaults.style().copy(
+    backWordTextStyle = TextStyle(fontFamily = FontFamily.Serif, fontStyle = FontStyle.Italic),
+    backWordTextColor = Color(0xFF3A5A8C)
+)
+```
+
+Like the language pill colors, "back" means the back face as defined by the exercise mode: in `CardFrontSide.Translation` mode the full-info face is shown first and keeps the back style. Auto-size scales from the merged style's font size.
+
+#### Word placement
+
+Three settings control where the word sits. Both faces follow them, so the word lands in the same place on the front and the back.
+
+| Field | Default | Controls |
+|---|---|---|
+| `contentPadding` | `28.dp` | Space between the card edge and its content, on all sides. Also insets the audio button |
+| `reservedTopHeight` | `0.dp` | Row at the top of the word area that the word never enters — size it to the corner icons |
+| `reservedBottomHeight` | `0.dp` | Row at the bottom of the word area that the word never enters — size it to the audio button |
+| `wordVerticalPosition` | `Raised` | `Raised`: free space split 40 / 60 above / below the word, so it sits slightly above centre. `Centered`: the word is exactly centred in the word area |
+
+The word area is the card minus `contentPadding`, minus the two reserved rows. Reserved rows are measured from inside the padding. The built-in audio button is about 48dp tall and sits inside the padding, so `reservedBottomHeight = 48.dp` clears it; the corner icons sit flush with the card edge, so they need less than their own height. From top to bottom the card reads: top reserved row (language pill, corner icon), word area, bottom reserved row (audio button).
+
+With `Centered`, phonetics and the word class hang **below** the word without moving it. The word may shrink (auto-size) so they still fit. The audio button is an overlay and never moves the word either. With equal top and bottom rows, the word sits at the same spot on both faces:
+
+```kotlin
+style = CuteCardDefaults.style().copy(
+    reservedTopHeight = 48.dp,
+    reservedBottomHeight = 48.dp,
+    wordVerticalPosition = WordVerticalPosition.Centered
+)
+```
+
+#### Shadows
+
+```kotlin
+data class CardShadow(
+    val color: Color,
+    val blur: Dp,           // must be >= 0.dp
+    val offsetY: Dp,
+    val spread: Dp = 0.dp
+)
+
+data class CardShadows(
+    val topOverDeck: List<CardShadow> = /* built-in two-layer shadow */,
+    val topAlone: List<CardShadow> = /* built-in two-layer shadow */,
+    val nearDeckCard: List<CardShadow>? = null,
+    val farDeckCard: List<CardShadow>? = null
+)
+```
+
+Shadows are described as **layers**. The active card and the deck cards use the same model, `CardShadow`, and each card takes a list of them — stack a thin sharp shadow close to the card with a wider soft one for a paper look.
+
+| `CardShadow` field | Default | Controls |
+|---|---|---|
+| `color` | — | Shadow color. Its alpha sets the strength — take it from your palette so light and dark mode each get their own |
+| `blur` | — | Softness of the edge (blur radius) |
+| `offsetY` | — | How far below the card the shadow falls |
+| `spread` | `0.dp` | Grows or shrinks the shadow before blurring. Negative values need a rounded-rectangle `cardShape` (the default) |
+
+`CardShadows` assigns layers per card. Each list is drawn in order, first layer lowest; an empty list means no shadow.
+
+| `CardShadows` field | Default | Used for |
+|---|---|---|
+| `topOverDeck` | built-in two-layer shadow | The active card while deck cards are shown under it |
+| `topAlone` | built-in two-layer shadow | The active card when no deck cards are under it — the last card (`remainingCards = 1`) |
+| `nearDeckCard` | `null` | The deck card directly behind. `null` keeps the built-in shadow, which fades with `nearCardAlpha` |
+| `farDeckCard` | `null` | The deck card at the back. `null` keeps the built-in shadow, which fades with `farCardAlpha` |
+
+```kotlin
+val sharp = CardShadow(palette.shadowSharp, blur = 2.dp, offsetY = 1.dp)
+
+style = CuteCardDefaults.style().copy(
+    shadows = CardShadows(
+        topOverDeck = listOf(sharp, CardShadow(palette.shadowSoft, blur = 16.dp, offsetY = 6.dp)),
+        topAlone = listOf(sharp, CardShadow(palette.shadowSoft, blur = 28.dp, offsetY = 12.dp)),
+        nearDeckCard = listOf(sharp),
+        farDeckCard = listOf(sharp, CardShadow(palette.shadowDeep, blur = 24.dp, offsetY = 10.dp))
+    )
+)
+```
+
+Custom lists are drawn exactly as given — they are never tied to the deck cards' opacity. The active card's shadows are hidden while it flips and come back when the flip ends. The shadows render the same on Android and iOS.
+
+#### `GhostStackStyle`
+
+```kotlin
+data class GhostStackStyle(
+    val sideInsetPerStep: Dp? = null,   // null = scale to 95 % / 90 %
+    val offsetPerStep: Dp? = null,      // null = 24 dp / 40 dp
+    val nearCardAlpha: Float = 0.85f,
+    val farCardAlpha: Float = 0.65f
+)
+```
+
+Negative dp values and alphas outside `0..1` throw `IllegalArgumentException`. See [Ghost card size and opacity](#ghost-card-size-and-opacity).
 
 #### `AudioButtonStyle`
 
@@ -309,6 +455,8 @@ data class DismissButtonStyle(
     val containerColor: Color = Color.Transparent
 )
 ```
+
+`contentColor` also tints the built-in rewind icon. `containerColor` is currently not drawn by either built-in button.
 
 #### `WordClassPillStyle`
 
@@ -387,7 +535,7 @@ data class CuteCardLabels(
 )
 ```
 
-`unflipButtonLabel` is used as the accessibility content description for the rewind icon — it is never shown as visible text. All other content descriptions are read by TalkBack (Android) and VoiceOver (iOS). Tailor them to your app's voice.
+`unflipButtonLabel` is used as the accessibility content description for the rewind icon — it is never shown as visible text. Button labels apply to the built-in buttons only; a custom `dismissButton`, `unflipButton` or `audioButton` supplies its own text. All other content descriptions are read by TalkBack (Android) and VoiceOver (iOS). Tailor them to your app's voice.
 
 ---
 
@@ -414,11 +562,28 @@ enum class CardFrontSide {
 }
 ```
 
+#### `WordVerticalPosition`
+```kotlin
+enum class WordVerticalPosition {
+    Raised,       // free space split 40 / 60 above / below the word (default)
+    Centered      // word exactly centred; phonetics and word class hang below it
+}
+```
+
 #### `FlipDirection`
 ```kotlin
 enum class FlipDirection {
     Horizontal,   // rotateY — card flips left to right (default)
     Vertical      // rotateX — card flips top to bottom
+}
+```
+
+#### `UnflipButtonPosition`
+```kotlin
+enum class UnflipButtonPosition {
+    None,         // no button, no reserved space (default)
+    AboveCard,    // above the card, right-aligned
+    CardTopEnd    // inside the card's top-right corner
 }
 ```
 
@@ -433,7 +598,15 @@ enum class ExitAnimation {
 }
 ```
 
-Valid pairings:
+| Value | Effect |
+|---|---|
+| `SlideUp` | Card slides up and fades out |
+| `SlideDown` | Card slides down and fades out |
+| `ScaleFade` | Card scales up slightly then fades out |
+| `Fade` | Card fades out in place |
+| `None` | Card disappears instantly (no animation) |
+
+`confirmExit` and `dismissExit` are independent. Valid pairings:
 
 | Exit type | Recommended values |
 |---|---|
@@ -499,6 +672,8 @@ CuteCard(
     )
 )
 ```
+
+`darkStyle()` changes surface and text colors only — the shadows stay black. If your dark palette needs different shadows, set `shadows` from it (see [Shadows](#shadows)).
 
 ### Animation
 
@@ -593,21 +768,39 @@ CuteCard(
 
 ## Unflip button
 
-The unflip button is **disabled by default** (`unflipButton = null`). When enabled, it appears above the card (top-right) while the back face is visible. Tapping it plays the flip animation in reverse and returns to the front face without marking the card as known or unknown — the card stays in the deck.
+The unflip button is **disabled by default** (`unflipButtonPosition = UnflipButtonPosition.None`). When enabled, it appears while the back face is visible. Tapping it plays the flip animation in reverse and returns to the front face without marking the card as known or unknown — the card stays in the deck.
 
-When enabled, the button is shown and hidden automatically based on card state. While hidden (front face showing), the slot is rendered invisibly at its natural size — the card height stays constant regardless of how tall the button is. Hidden slots are also excluded from the accessibility tree so they cannot be focused by TalkBack or VoiceOver.
+### Positions
 
-When `null`, no space is reserved — the card sits flush with the top of its container.
+| `UnflipButtonPosition` | Placement | Behaviour |
+|---|---|---|
+| `None` (default) | — | No button, no reserved space. The card sits flush with the top of its container |
+| `AboveCard` | Above the card, right-aligned | While hidden (front face showing), the slot is rendered invisibly at its natural size, so the card height stays constant. Hidden slots are excluded from the accessibility tree |
+| `CardTopEnd` | Inside the card's top-right corner | Part of the back face: it rotates in and out with the flip. Not composed at all while the front face is showing, so it never intercepts taps on the front |
+
+The top-right corner is free on both faces — the language pill sits top-left and the audio button at the bottom.
 
 ### Enabling the unflip button
 
-The `unflipButton` slot accepts any composable. The `onClick` lambda **must be called** to trigger the reverse flip:
+Set the position in `CuteCardConfig`. The built-in rewind icon is used by default:
 
 ```kotlin
 CuteCard(
     content = content,
     onKnown = { ... },
-    onUnknown = { ... },
+    config = CuteCardConfig(unflipButtonPosition = UnflipButtonPosition.CardTopEnd)
+)
+```
+
+### Custom unflip button
+
+The `unflipButton` slot accepts any composable and works with both positions. The `onClick` lambda **must be called** to trigger the reverse flip:
+
+```kotlin
+CuteCard(
+    content = content,
+    onKnown = { ... },
+    config = CuteCardConfig(unflipButtonPosition = UnflipButtonPosition.AboveCard),
     unflipButton = { onClick ->
         IconButton(onClick = onClick) {
             Icon(Icons.Default.Replay, contentDescription = "Show word")
@@ -618,7 +811,98 @@ CuteCard(
 
 ### Unflip animation
 
-The reverse flip uses the same duration as the forward flip (`flipDurationMs`) and mirrors its easing curve. Shadow elevation is suppressed for the duration of the animation, matching the forward flip behaviour.
+The reverse flip uses the same duration as the forward flip (`flipDurationMs`) and mirrors its easing curve. The active card's shadows are hidden for the duration of the animation, matching the forward flip.
+
+---
+
+## Dismiss button
+
+The built-in "I don't know" button sits below the card and is shown while the back face is visible.
+
+### Custom dismiss button
+
+The `dismissButton` slot accepts any composable. The `onClick` lambda passed to it **must be called** to trigger the dismiss animation.
+
+```kotlin
+// Icon button
+CuteCard(
+    content = content,
+    onKnown = { ... },
+    onUnknown = { ... },
+    dismissButton = { onClick ->
+        IconButton(onClick = onClick) {
+            Icon(Icons.Default.Close, contentDescription = "I don't know")
+        }
+    }
+)
+
+// Image button
+CuteCard(
+    content = content,
+    onKnown = { ... },
+    onUnknown = { ... },
+    dismissButton = { onClick ->
+        Image(
+            painter = painterResource(Res.drawable.thumbs_down),
+            contentDescription = "I don't know",
+            modifier = Modifier.clickable(onClick = onClick)
+        )
+    }
+)
+```
+
+### Disabling the dismiss button
+
+Pass `null` to remove the dismiss button and its reserved space entirely. The card can then only be confirmed as known, so `onUnknown` is never called and can be omitted:
+
+```kotlin
+CuteCard(
+    content = content,
+    onKnown = { ... },
+    dismissButton = null
+)
+```
+
+---
+
+## Dismiss from your own controls
+
+The `dismissButton` slot always sits below the card. To put an "I don't know" control **anywhere** — a toolbar, a bottom bar, next to your own "I know it" button — hoist the card state with `rememberCuteCardState()` and call `dismiss()` from any button:
+
+```kotlin
+val cardState = rememberCuteCardState()
+
+Scaffold(
+    bottomBar = {
+        Button(
+            onClick = { cardState.dismiss() },
+            enabled = cardState.canDismiss
+        ) { Text("I don't know") }
+    }
+) {
+    CuteCard(
+        content = content,
+        state = cardState,
+        dismissButton = null,          // hide the built-in button
+        onKnown = { ... },
+        onUnknown = { ... }
+    )
+}
+```
+
+`dismiss()` behaves exactly like the built-in button: it plays `dismissExit`, then calls `onUnknown`.
+
+| | Built-in `dismissButton` | `cardState.dismiss()` |
+|---|---|---|
+| Placement | Below the card | Anywhere |
+| Front face | Hidden | **Works** — the card exits without flipping |
+| Back face (after settle lock) | Works | Works |
+| While flipping, settling or exiting | Ignored | Ignored |
+| `cardActionsEnabled = false` | Ignored | Ignored |
+
+`canDismiss` is observable and mirrors those rules, so `enabled = cardState.canDismiss` keeps your button in step with the card.
+
+One `CuteCardState` belongs to one `CuteCard`. It resets with the card whenever `content` changes, so remember it once for the whole deck.
 
 ---
 
@@ -646,7 +930,7 @@ A stray tap on the back face means "I know it" and would remove the card from th
 
 While `cardActionsEnabled` is `false`:
 
-- tap-to-flip, tap-to-confirm, the dismiss button and the unflip button are all inert
+- tap-to-flip, tap-to-confirm, the dismiss button, the unflip button and `cardState.dismiss()` are all inert
 - the dismiss and unflip buttons **stay visible**, so a coach mark can point at them
 - **the audio button keeps working** — `cardActionsEnabled` gates only the actions that advance the card, and audio does not
 
@@ -737,9 +1021,33 @@ CuteCard(
 )
 ```
 
-**Auto-play on flip** — if your app should play audio automatically when the card flips, trigger `playAudio()` inside `onKnown`'s inverse or observe the card state. Since `onAudioRequested` is your callback, you can call it from anywhere.
+**Auto-play on flip** — call `playAudio()` from `onFlipped`, which fires once the back face is revealed. See [Flip callbacks](#flip-callbacks).
 
 **Hide the audio button** — pass `onAudioRequested = null`. No button is rendered and no empty space is left behind.
+
+### Custom audio button
+
+The `audioButton` slot replaces the built-in button with any composable. It receives `isPlaying` to render its state and an `onClick` lambda that **must be called** to request playback — it forwards to `onAudioRequested`. The slot is placed at the bottom of the full-info face, centred, inset by `contentPadding`, and is still shown only when `onAudioRequested` is non-null:
+
+```kotlin
+CuteCard(
+    content = content,
+    onKnown = { ... },
+    isPlaying = isPlaying,
+    onAudioRequested = { player.play(content.audioUrl) },
+    audioButton = { isPlaying, onClick ->
+        IconButton(onClick = onClick) {
+            Icon(
+                Icons.Default.PlayArrow,
+                contentDescription = "Play",
+                tint = if (isPlaying) accentColor else Color.Gray
+            )
+        }
+    }
+)
+```
+
+Like the built-in button, a custom one keeps working when `cardActionsEnabled = false`.
 
 ---
 
@@ -763,7 +1071,31 @@ CuteCard(
 | 2 | 1 |
 | ≤ 1 | 0 |
 
-When `null`, the component behaves exactly as before — no behavior change unless you opt in by passing the count.
+When `null`, the full two-card stack is always shown — the stack only shrinks when you pass the count.
+
+### Ghost card size and opacity
+
+`ghostStackStyle` on `CuteCardStyle` controls the ghost cards' geometry and opacity. Step 1 is the card directly behind the active one, step 2 the card behind that. Every field defaults to the built-in look.
+
+| Field | Default | Controls |
+|---|---|---|
+| `sideInsetPerStep` | `null` | Each lower card is this much narrower **on each side**, per step, at full card height (8.dp → 8 dp, then 16 dp). `null` scales the cards down to 95 % and 90 % instead |
+| `offsetPerStep` | `null` | Each lower card is shifted down by this much per step (6.dp → 6 dp, then 12 dp). `null` uses 24 dp and 40 dp |
+| `nearCardAlpha` | `0.85` | Opacity of the card directly behind the active one |
+| `farCardAlpha` | `0.65` | Opacity of the card at the back |
+
+```kotlin
+style = CuteCardDefaults.style().copy(
+    ghostStackStyle = GhostStackStyle(
+        sideInsetPerStep = 8.dp,
+        offsetPerStep = 6.dp,
+        nearCardAlpha = 1f,
+        farCardAlpha = 1f
+    )
+)
+```
+
+The offset is drawn outside the card's layout bounds, so the stack peeks into the space below the card. Leave enough room there (the default dismiss button sits 48 dp below the card).
 
 ---
 
@@ -777,7 +1109,9 @@ When `null`, the component behaves exactly as before — no behavior change unle
 | Unflip button visibility and animation | Library |
 | Reconciling `forceFlipped` towards the target face | Library |
 | Tutorial / onboarding pacing and choreography | Consumer |
-| Audio idle / playing visual states | Library |
+| Audio idle / playing visual states (built-in button) | Library |
+| Custom audio / dismiss / unflip controls | Consumer |
+| Style values per theme (light / dark colors, shadows) | Consumer |
 | Audio playback | Consumer |
 | `isPlaying` state | Consumer |
 | `remainingCards` state | Consumer |
@@ -794,14 +1128,15 @@ When `null`, the component behaves exactly as before — no behavior change unle
   CuteCard.kt
   CuteCardContent.kt
   CuteCardConfig.kt
-  CuteCardStyle.kt
+  CuteCardStyle.kt       ← CuteCardStyle plus CardShadow / CardShadows, GhostStackStyle and the pill / button styles
   CuteCardLabels.kt
   CuteCardDefaults.kt
+  CuteCardState.kt       ← hoisted state: dismiss(), canDismiss
 
 /internal             ← never imported by the consumer
   /state
-    CuteCardState.kt       ← sealed class: Front, Flipping, UnFlipping, Settling, Back,
-                              ExitingConfirm, ExitingDismiss, Gone
+    CuteCardPhase.kt       ← sealed class: Front, Flipping, UnFlipping, Settling, Back,
+                              ExitingConfirm, ExitingDismiss, ExitingDismissFromFront, Gone
     CuteCardStateHolder.kt ← state machine, settle timer flag
   /animation
     CuteCardAnimator.kt    ← AnimationSpec builders from config values (flipSpec, unflipSpec, exit specs)
@@ -811,18 +1146,21 @@ When `null`, the component behaves exactly as before — no behavior change unle
     CuteCardLayout.kt      ← wires everything together
     CardFront.kt
     CardBack.kt
-    AudioButton.kt
+    WordArea.kt            ← shared word placement for both faces
+    CardShadows.kt         ← layered dropShadow helper shared by the active card and the deck
+    AudioButton.kt         ← built-in audio button (default for the audioButton slot)
     DismissButton.kt       ← "I don't know" text button, below card
-    UnflipButton.kt        ← rewind icon button, above card (top-right)
-    GhostStack.kt           ← two static cards behind the active card
+    UnflipButton.kt        ← built-in rewind icon button (above card or in its top-right corner)
+    GhostStack.kt          ← decorative cards behind the active card; count adapts to remainingCards
   /theme
-    CuteCardTokens.kt      ← internal constants (sizes, radii, durations)
+    CuteCardTokens.kt      ← internal constants (sizes, radii, durations, default top-card shadows)
 ```
 
 State flow:
 
 `Front → Flipping → Settling → Back → ExitingConfirm → Gone`  
 `Back → UnFlipping → Front` (unflip)  
-`Back → ExitingDismiss → Gone` (dismiss)
+`Back → ExitingDismiss → Gone` (dismiss)  
+`Front → ExitingDismissFromFront → Gone` (`cardState.dismiss()` from the front)
 
 The lib owns ephemeral UI state (flip progress, unflip progress, settle lock, exit animation). The consumer owns everything else. No responsibility crosses that boundary.

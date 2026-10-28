@@ -6,7 +6,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 
 /**
- * Drives the [CuteCardState] machine for a single [CuteCard] instance.
+ * Drives the [CuteCardPhase] machine for a single [CuteCard] instance.
  *
  * Created once via `remember { CuteCardStateHolder() }` inside the
  * public [CuteCard] composable. Scoped to the composable — destroyed when
@@ -21,51 +21,51 @@ internal class CuteCardStateHolder {
      * Current state of the card. Observed by the composable to drive
      * animation and interaction.
      */
-    var state: CuteCardState by mutableStateOf(CuteCardState.Front)
+    var state: CuteCardPhase by mutableStateOf(CuteCardPhase.Front)
         private set
 
     /**
-     * True while the card is in [CuteCardState.Settling].
+     * True while the card is in [CuteCardPhase.Settling].
      * The composable watches this and runs the settle timer [LaunchedEffect].
      */
     val shouldRunSettleTimer: Boolean
-        get() = state is CuteCardState.Settling
+        get() = state is CuteCardPhase.Settling
 
     // Transition API
 
     /**
      * Called when the user taps the card.
-     * Valid from: [CuteCardState.Front] → starts flip.
-     * Valid from: [CuteCardState.Back] → starts confirm exit.
+     * Valid from: [CuteCardPhase.Front] → starts flip.
+     * Valid from: [CuteCardPhase.Back] → starts confirm exit.
      * All other states: ignored (interaction is locked).
      */
     fun onCardTap() {
         when (state) {
-            CuteCardState.Front -> transitionTo(CuteCardState.Flipping)
-            CuteCardState.Back  -> transitionTo(CuteCardState.ExitingConfirm)
+            CuteCardPhase.Front -> transitionTo(CuteCardPhase.Flipping)
+            CuteCardPhase.Back  -> transitionTo(CuteCardPhase.ExitingConfirm)
             else                 -> Unit
         }
     }
 
     /**
      * Called when the dismiss button is tapped.
-     * Valid from: [CuteCardState.Back] only.
+     * Valid from: [CuteCardPhase.Back] only.
      * All other states: ignored.
      */
     fun onDismissTap() {
-        if (state is CuteCardState.Back) {
-            transitionTo(CuteCardState.ExitingDismiss)
+        if (state is CuteCardPhase.Back) {
+            transitionTo(CuteCardPhase.ExitingDismiss)
         }
     }
 
     /**
      * Called when the unflip button is tapped.
-     * Valid from: [CuteCardState.Back] only — starts the reverse flip animation.
+     * Valid from: [CuteCardPhase.Back] only — starts the reverse flip animation.
      * All other states: ignored.
      */
     fun onUnflipTap() {
-        if (state is CuteCardState.Back) {
-            transitionTo(CuteCardState.UnFlipping)
+        if (state is CuteCardPhase.Back) {
+            transitionTo(CuteCardPhase.UnFlipping)
         }
     }
 
@@ -76,79 +76,98 @@ internal class CuteCardStateHolder {
 
     /**
      * Flips the card from code, as a tap on the front face would.
-     * Valid from: [CuteCardState.Front] only. All other states: ignored.
+     * Valid from: [CuteCardPhase.Front] only. All other states: ignored.
      */
     fun requestFlip() {
-        if (state is CuteCardState.Front) {
-            transitionTo(CuteCardState.Flipping)
+        if (state is CuteCardPhase.Front) {
+            transitionTo(CuteCardPhase.Flipping)
+        }
+    }
+
+    /**
+     * True when [requestDismiss] would start an exit — the card is resting on either face.
+     */
+    val canRequestDismiss: Boolean
+        get() = state is CuteCardPhase.Front || state is CuteCardPhase.Back
+
+    /**
+     * Dismisses the card from code, e.g. a consumer-owned "I don't know" button.
+     * Unlike [onDismissTap], also valid from [CuteCardPhase.Front].
+     * All other states: ignored.
+     */
+    fun requestDismiss() {
+        when (state) {
+            CuteCardPhase.Front -> transitionTo(CuteCardPhase.ExitingDismissFromFront)
+            CuteCardPhase.Back  -> transitionTo(CuteCardPhase.ExitingDismiss)
+            else                 -> Unit
         }
     }
 
     /**
      * Reverse-flips the card from code, as the unflip button would.
-     * Valid from: [CuteCardState.Back] only. All other states: ignored.
+     * Valid from: [CuteCardPhase.Back] only. All other states: ignored.
      */
     fun requestUnflip() {
-        if (state is CuteCardState.Back) {
-            transitionTo(CuteCardState.UnFlipping)
+        if (state is CuteCardPhase.Back) {
+            transitionTo(CuteCardPhase.UnFlipping)
         }
     }
 
     /**
      * Called by the composable when the reverse flip animation finishes.
-     * Moves from [CuteCardState.UnFlipping] → [CuteCardState.Front].
+     * Moves from [CuteCardPhase.UnFlipping] → [CuteCardPhase.Front].
      */
     fun onUnflipAnimationFinished() {
-        if (state is CuteCardState.UnFlipping) {
-            transitionTo(CuteCardState.Front)
+        if (state is CuteCardPhase.UnFlipping) {
+            transitionTo(CuteCardPhase.Front)
         }
     }
 
     /**
      * Called by the composable when the flip animation finishes.
-     * Moves from [CuteCardState.Flipping] → [CuteCardState.Settling].
+     * Moves from [CuteCardPhase.Flipping] → [CuteCardPhase.Settling].
      */
     fun onFlipAnimationFinished() {
-        if (state is CuteCardState.Flipping) {
-            transitionTo(CuteCardState.Settling)
+        if (state is CuteCardPhase.Flipping) {
+            transitionTo(CuteCardPhase.Settling)
         }
     }
 
     /**
      * Called by the composable's [LaunchedEffect] after
      * [CuteCardConfig.settledLockDurationMs] elapses.
-     * Moves from [CuteCardState.Settling] → [CuteCardState.Back].
+     * Moves from [CuteCardPhase.Settling] → [CuteCardPhase.Back].
      */
     fun onSettled() {
-        if (state is CuteCardState.Settling) {
-            transitionTo(CuteCardState.Back)
+        if (state is CuteCardPhase.Settling) {
+            transitionTo(CuteCardPhase.Back)
         }
     }
 
     /**
      * Called by the composable when the exit animation finishes.
-     * Moves from [CuteCardState.ExitingConfirm] or [CuteCardState.ExitingDismiss]
-     * → [CuteCardState.Gone].
+     * Moves from any exiting state → [CuteCardPhase.Gone].
      */
     fun onExitAnimationFinished() {
         when (state) {
-            CuteCardState.ExitingConfirm,
-            CuteCardState.ExitingDismiss -> transitionTo(CuteCardState.Gone)
+            CuteCardPhase.ExitingConfirm,
+            CuteCardPhase.ExitingDismiss,
+            CuteCardPhase.ExitingDismissFromFront -> transitionTo(CuteCardPhase.Gone)
             else                          -> Unit
         }
     }
 
     /**
-     * Resets the state machine to [CuteCardState.Front].
+     * Resets the state machine to [CuteCardPhase.Front].
      * Called when [CuteCardContent] changes — i.e. a new card is shown.
      */
     fun reset() {
-        transitionTo(CuteCardState.Front)
+        transitionTo(CuteCardPhase.Front)
     }
 
     // Internal
 
-    private fun transitionTo(next: CuteCardState) {
+    private fun transitionTo(next: CuteCardPhase) {
         state = next
     }
 }

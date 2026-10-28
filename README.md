@@ -1,6 +1,6 @@
 # CuteCard
 
-[![Version](https://img.shields.io/badge/version-0.4.0-blue)](https://github.com/Haartag/CuteCard/releases/tag/v0.4.0)
+[![Version](https://img.shields.io/badge/version-0.5.0-blue)](https://github.com/Haartag/CuteCard/releases/tag/v0.5.0)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
 A language-learning flashcard component for **Compose Multiplatform** (Android & iOS).
@@ -12,361 +12,122 @@ CuteCard handles the full interaction lifecycle of a single flashcard - 3D flip 
 ## Features
 
 - 3D card flip (horizontal or vertical axis)
-- Unflip button — lets the user flip back to the front face without dismissing
-- Programmatic flip — drive the card from code for onboarding and tutorials, with taps safely disabled while audio stays usable
-- Confirm and dismiss exit animations (slide, scale-fade, fade)
 - Two exercise modes — see the word, recall the translation, or vice versa
-- Ghost card stack for a physical deck feel
-- Audio button with idle/playing visual states
+- Confirm and dismiss exit animations (slide, scale-fade, fade)
+- Audio button with idle/playing visual states, or your own custom button
+- "I don't know" button — built-in, custom, hidden, or your own control placed anywhere
+- Unflip button — flip back to the front face without dismissing, above the card or in its corner
+- Programmatic flip — drive the card from code for onboarding and tutorials
+- Ghost card stack for a physical deck feel, with configurable inset, offset and opacity
+- Layered shadows — several shadows per card, separate for the top card and each deck card
+- Configurable word placement and per-side word text style
 - Language indicator pill — small 2-3 character code (e.g. "EN", "ES") in the card corner
-- Fully customizable: colors, shapes, typography, labels, timing
-- Built-in dark mode style
+- Fully customizable colors, shapes, typography, labels and timing, with a built-in dark style
 
 ---
 
 ## Installation
 
 ```kotlin
-implementation("site.llinsoft:cutecard:0.4.0")
+implementation("site.llinsoft:cutecard:0.5.0")
 ```
-
-For the full API reference see [documentation/CuteCard_Documentation.md](documentation/CuteCard_Documentation.md).
 
 ---
 
 ## Quick start
 
 ```kotlin
+var isPlaying by remember { mutableStateOf(false) }
+
 CuteCard(
     content = CuteCardContent(
-        word = "iron",
-        translation = "hierro",
+        word = "hierro",
+        translation = "iron",
         phonetics = "[ˈje.ro]",
         wordClass = "noun",
         audioUrl = "https://example.com/hierro.mp3"
     ),
     onKnown = { /* advance to next card */ },
     onUnknown = { /* re-queue or move on */ },
-    onAudioRequested = { player.play(content.audioUrl) }
-)
-```
-
-`onKnown` and `onUnknown` are called **after** their respective exit animations complete — replace the card there.
-
----
-
-## Content
-
-`CuteCardContent` holds all data for a single card. One instance = one card.
-
-```kotlin
-CuteCardContent(
-    word = "correr",           // required — the word to learn
-    translation = "to run",    // required — the translation
-    phonetics = "[ko.ˈrer]",  // optional — hides phonetics row when null
-    wordClass = "verb",        // optional — hides word class pill when null
-    audioUrl = "https://...",  // optional — hides audio button when null
-    sourceLanguage = "ES",     // optional — language code shown on the word face (null = hidden)
-    targetLanguage = "EN"      // optional — language code shown on the translation face (null = hidden)
-)
-```
-
-Changing `content` while the component is in composition resets the card to its front face.
-
----
-
-## Exercise modes
-
-Control which face appears first via `CuteCardConfig.frontSide`.
-
-| Mode | Front face | Back face |
-|---|---|---|
-| `CardFrontSide.Word` *(default)* | Word only | Translation + phonetics + audio |
-| `CardFrontSide.Translation` | Translation + phonetics + audio | Word only |
-
-```kotlin
-// Mode B — see the full info, recall the word
-CuteCard(
-    content = content,
-    onKnown = { ... },
-    onUnknown = { ... },
-    config = CuteCardConfig(frontSide = CardFrontSide.Translation)
-)
-```
-
----
-
-## Configuration
-
-`CuteCardConfig` controls all behavior and animation. All fields have sensible defaults.
-
-```kotlin
-CuteCardConfig(
-    frontSide = CardFrontSide.Word,          // which face shows first
-    flipDurationMs = 400,                    // 3D flip duration
-    settledLockDurationMs = 350,             // tap-lock after flip (prevents accidental confirm)
-    exitDurationMs = 300,                    // exit animation duration
-    flipDirection = FlipDirection.Horizontal, // or Vertical
-    confirmExit = ExitAnimation.SlideUp,     // animation when marked as known
-    dismissExit = ExitAnimation.SlideDown,   // animation when marked as unknown
-)
-```
-
-### Exit animations
-
-| Value | Effect |
-|---|---|
-| `SlideUp` | Card slides up and fades out |
-| `SlideDown` | Card slides down and fades out |
-| `ScaleFade` | Card scales up slightly then fades out |
-| `Fade` | Card fades out in place |
-| `None` | Card disappears instantly (no animation) |
-
-`confirmExit` and `dismissExit` are independent. Use `None` to disable animation.
-
----
-
-## Styling
-
-Build from `CuteCardDefaults.style()` and override only what you need.
-
-```kotlin
-CuteCard(
-    content = content,
-    onKnown = { ... },
-    onUnknown = { ... },
-    style = CuteCardDefaults.style().copy(
-        cardBackgroundColor = Color(0xFF1E1E1E),
-        wordTextColor = Color(0xFFF0EFE9)
-    )
-)
-```
-
-### Dark mode
-
-A pre-built dark style ships out of the box:
-
-```kotlin
-style = CuteCardDefaults.darkStyle()
-```
-
-### Style reference
-
-`CuteCardStyle` exposes:
-
-| Field | Controls |
-|---|---|
-| `cardShape` | Card corner shape |
-| `cardElevation` | Shadow depth of the active card |
-| `cardAspectRatio` | Width-to-height ratio (default 3:4) |
-| `cardBackgroundColor` | Card surface fill |
-| `ghostCardBackgroundColor` | Stack cards behind the active card |
-| `cardBorderColor` | Optional card stroke (transparent = none) |
-| `wordTextStyle` / `wordTextColor` | Primary word / translation typography |
-| `phoneticsTextStyle` / `phoneticsTextColor` | Phonetics row typography |
-| `wordClassPillStyle` | Word class chip — text, colors, shape |
-| `audioButtonStyle` | Audio button — icon colors, stroke widths, background/text colors per state, shape, typography |
-| `dismissButtonStyle` | Dismiss button — text color, typography, shape |
-| `languagePillStyle` | Language indicator pill — text style, colors, shape, padding, corner offset. `backTextColor` / `backContainerColor` override colors on the back face independently |
-
-### Per-side language pill colors
-
-The front and back faces can have different pill colors. Set `backTextColor` and/or `backContainerColor` on `languagePillStyle` — they fall back to the base colors when not set.
-
-```kotlin
-style = CuteCardDefaults.style().copy(
-    languagePillStyle = CuteCardDefaults.style().languagePillStyle.copy(
-        containerColor = Color(0xFFDCE3EE),   // front face pill background
-        textColor = Color(0xFF1F3A5F),         // front face pill text
-        backContainerColor = Color(0xFF2E4A3E), // back face pill background
-        backTextColor = Color(0xFFAADDC4)       // back face pill text
-    )
-)
-```
-
----
-
-## Labels and localization
-
-`CuteCardLabels` collects all user-facing strings in one place. Pass it to override the language or wording — defaults are English.
-
-**Visible text**
-- `dismissButtonLabel` — text on the default "I don't know" button.
-- `audioButtonIdleLabel` / `audioButtonPlayingLabel` — text shown on the audio button in its idle and playing states.
-
-**Accessibility labels** (screen readers only, never shown visually)
-- `unflipButtonLabel` — content description for the unflip icon button.
-- `audioButtonContentDescription`, `cardFrontContentDescription`, `cardBackContentDescription`.
-
-```kotlin
-CuteCard(
-    content = content,
-    onKnown = { ... },
-    onUnknown = { ... },
-    labels = CuteCardLabels(
-        dismissButtonLabel = "Noch nicht",
-        unflipButtonLabel = "Wort anzeigen",
-        audioButtonIdleLabel = "Anhören",
-        audioButtonPlayingLabel = "Läuft...",
-        audioButtonContentDescription = "Aussprache abspielen",
-        cardFrontContentDescription = "Wortkarte, tippen zum Aufdecken",
-        cardBackContentDescription = "Übersetzung sichtbar, tippen zum Bestätigen"
-    )
-)
-```
-
----
-
-## Audio button
-
-The audio button appears on the full-info face when `onAudioRequested` is non-null. The library manages visuals only — playback is entirely the consumer's responsibility.
-
-```kotlin
-var isPlaying by remember { mutableStateOf(false) }
-
-CuteCard(
-    content = content,
-    onKnown = { ... },
-    onUnknown = { ... },
     isPlaying = isPlaying,
     onAudioRequested = {
         isPlaying = true
-        player.play(content.audioUrl) {
-            isPlaying = false  // called when playback ends
-        }
+        player.play(content.audioUrl) { isPlaying = false }
     }
 )
 ```
 
-When `isPlaying` is true the button switches to an accent color and thicker stroke. When `onAudioRequested` is `null`, the button is hidden entirely with no empty space left behind.
+- Tap the card to flip it, tap the back to mark it as known, or tap "I don't know".
+- `onKnown` and `onUnknown` are called **after** their exit animations complete — replace the card there.
+- Playback is yours: the library only draws the audio button and calls `onAudioRequested`. Pass `null` to hide the button.
 
 ---
 
-## Flip callbacks
+## Key features
 
-Two optional callbacks let you react to flip events without polling state.
-
-`onFlipped` — fires when the back face becomes interactive (flip animation done + settle lock expired). Use it to auto-play audio or log analytics.
-
-`onFlippedBack` — fires when the user taps the back face to confirm the card as known, before the exit animation starts. Useful for immediate UI reactions.
+### Exercise modes
 
 ```kotlin
-CuteCard(
-    content = content,
-    onKnown = { /* advance deck */ },
-    onUnknown = { /* re-queue */ },
-    onFlipped = { player.play(content.audioUrl) },   // auto-play on reveal
-    onFlippedBack = { viewModel.onConfirmTapped() }  // react before exit
-)
+config = CuteCardConfig(frontSide = CardFrontSide.Translation)
 ```
 
-Both default to `null` (no callback).
+`Word` (default) shows the word first and reveals translation, phonetics, word class and audio. `Translation` reverses it.
+
+### Styling and dark mode
+
+```kotlin
+style = CuteCardDefaults.style().copy(
+    cardBackgroundColor = Color(0xFFFFF8F0),
+    wordTextColor = Color(0xFF2C2C2C)
+)
+
+style = CuteCardDefaults.darkStyle()
+```
+
+Start from the defaults and override only what you need.
+
+### "I don't know" button
+
+```kotlin
+// Hide it
+CuteCard(content = content, onKnown = { ... }, dismissButton = null)
+
+// Or place your own control anywhere
+val cardState = rememberCuteCardState()
+
+CuteCard(content = content, state = cardState, dismissButton = null, onKnown = { ... }, onUnknown = { ... })
+
+Button(onClick = { cardState.dismiss() }, enabled = cardState.canDismiss) { Text("I don't know") }
+```
+
+### Unflip button
+
+```kotlin
+config = CuteCardConfig(unflipButtonPosition = UnflipButtonPosition.CardTopEnd)
+```
+
+Off by default. `AboveCard` or `CardTopEnd` shows a rewind button that flips the card back without dismissing it.
 
 ---
 
-## Ghost stack
+## Documentation
 
-By default the component always renders two decorative ghost cards behind the active card. Pass `remainingCards` to have the stack shrink automatically as the deck runs out.
+Upgrading? See the [changelog](CHANGELOG.md) for breaking changes and migration notes.
 
-```kotlin
-CuteCard(
-    content = content,
-    onKnown = { ... },
-    onUnknown = { ... },
-    remainingCards = deck.size   // 3+ → full stack, 2 → one ghost, 1 → no stack
-)
-```
+Everything else is in the [full documentation](documentation/CuteCard_Documentation.md):
 
-| `remainingCards` | Ghost cards shown |
+| Topic | Section |
 |---|---|
-| `null` (default) | 2 — always full stack |
-| ≥ 3 | 2 |
-| 2 | 1 |
-| ≤ 1 | 0 |
-
----
-
-## Custom dismiss button
-
-The dismiss button slot accepts any composable. The `onClick` lambda passed to it **must be called** to trigger the dismiss animation.
-
-```kotlin
-// Icon button
-CuteCard(
-    content = content,
-    onKnown = { ... },
-    onUnknown = { ... },
-    dismissButton = { onClick ->
-        IconButton(onClick = onClick) {
-            Icon(Icons.Default.Close, contentDescription = "I don't know")
-        }
-    }
-)
-
-// Image button
-CuteCard(
-    content = content,
-    onKnown = { ... },
-    onUnknown = { ... },
-    dismissButton = { onClick ->
-        Image(
-            painter = painterResource(Res.drawable.thumbs_down),
-            contentDescription = "I don't know",
-            modifier = Modifier.clickable(onClick = onClick)
-        )
-    }
-)
-```
-
----
-
-## Unflip button
-
-The unflip button is **disabled by default** (`unflipButton = null`). When enabled, it appears above the card (top-right) while the back face is visible. Tapping it plays the flip animation in reverse, returning to the front face without dismissing the card.
-
-Enable it by supplying any composable — the `onClick` lambda **must be called** to trigger the animation:
-
-```kotlin
-CuteCard(
-    content = content,
-    onKnown = { ... },
-    onUnknown = { ... },
-    unflipButton = { onClick ->
-        IconButton(onClick = onClick) {
-            Icon(Icons.Default.Replay, contentDescription = "Show word")
-        }
-    }
-)
-```
-
-When `null`, no space is reserved above the card.
-
----
-
-## Programmatic flip
-
-`forceFlipped` flips the card from code — for onboarding and tutorial demonstrations. `null` (default) leaves the card user-driven, `true` shows the back face, `false` shows the front face.
-
-```kotlin
-var demoFlipped by remember { mutableStateOf<Boolean?>(null) }
-
-LaunchedEffect(Unit) {
-    delay(900)
-    demoFlipped = true      // flip to the back face
-    delay(2600)
-    demoFlipped = false     // flip back to the front
-    delay(700)
-    demoFlipped = null      // hand control back to the user
-}
-
-CuteCard(content = content, forceFlipped = demoFlipped, onKnown = { ... }, onUnknown = { ... })
-```
-
-It is a **target, not an event** — a value set mid-animation is applied once the card is eligible, so your tutorial's delays never have to wait out `flipDurationMs` or `settledLockDurationMs`. Reset it to `null` when the tutorial ends: a target left at `true` flips the next card too, and `false` pins the card to its front face.
-
-Because a stray tap on the back face would mark the card known and remove it mid-tutorial, `cardActionsEnabled` defaults to `forceFlipped == null`. While it is `false`, tap-to-flip, tap-to-confirm, dismiss and unflip are inert — but the dismiss and unflip buttons stay visible for coach marks, and **the audio button keeps working**. Pass `cardActionsEnabled = true` to allow code-driven flips and user taps together.
-
-See the [full documentation](documentation/CuteCard_Documentation.md#programmatic-flip) for details.
+| All parameters, data classes and enums | [API reference](documentation/CuteCard_Documentation.md#api-reference) |
+| Word placement — padding, reserved rows, centring | [Word placement](documentation/CuteCard_Documentation.md#word-placement) |
+| Layered shadows | [Shadows](documentation/CuteCard_Documentation.md#shadows) |
+| Ghost stack size, offset, opacity | [Ghost stack](documentation/CuteCard_Documentation.md#ghost-stack) |
+| Per-side word text style and pill colors | [Per-side word text style](documentation/CuteCard_Documentation.md#per-side-word-text-style), [LanguagePillStyle](documentation/CuteCard_Documentation.md#languagepillstyle) |
+| Custom audio, dismiss and unflip buttons | [Audio playback](documentation/CuteCard_Documentation.md#audio-playback), [Dismiss button](documentation/CuteCard_Documentation.md#dismiss-button), [Unflip button](documentation/CuteCard_Documentation.md#unflip-button) |
+| Flip callbacks | [Flip callbacks](documentation/CuteCard_Documentation.md#flip-callbacks) |
+| Programmatic flip for tutorials | [Programmatic flip](documentation/CuteCard_Documentation.md#programmatic-flip) |
+| Animation timing and exit animations | [Animation](documentation/CuteCard_Documentation.md#animation) |
+| Labels and localisation | [Labels and localisation](documentation/CuteCard_Documentation.md#labels-and-localisation) |
 
 ---
 

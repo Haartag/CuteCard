@@ -1,5 +1,7 @@
 package site.llinsoft.cutecard
 
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.unit.dp
 import site.llinsoft.cutecard.CardFrontSide
 import site.llinsoft.cutecard.ExitAnimation
 import site.llinsoft.cutecard.CuteCardConfig
@@ -8,7 +10,9 @@ import site.llinsoft.cutecard.CuteCardLabels
 import site.llinsoft.cutecard.FlipDirection
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertFailsWith
 import kotlin.test.assertNull
+import kotlin.test.assertTrue
 
 class CuteCardApiTest {
 
@@ -66,6 +70,62 @@ class CuteCardApiTest {
         assertEquals(FlipDirection.Horizontal, c.flipDirection)
         assertEquals(ExitAnimation.SlideUp, c.confirmExit)
         assertEquals(ExitAnimation.SlideDown, c.dismissExit)
+        assertEquals(UnflipButtonPosition.None, c.unflipButtonPosition)
+    }
+
+    @Test
+    fun unflipButtonPositionValues() {
+        assertEquals(
+            listOf(UnflipButtonPosition.None, UnflipButtonPosition.AboveCard, UnflipButtonPosition.CardTopEnd),
+            UnflipButtonPosition.entries
+        )
+    }
+
+    @Test
+    fun wordVerticalPositionValues() {
+        assertEquals(
+            listOf(WordVerticalPosition.Raised, WordVerticalPosition.Centered),
+            WordVerticalPosition.entries
+        )
+    }
+
+    @Test
+    fun ghostStackStyleDefaultsKeepLegacyLook() {
+        val g = GhostStackStyle()
+        assertNull(g.sideInsetPerStep)
+        assertNull(g.offsetPerStep)
+        assertEquals(0.85f, g.nearCardAlpha)
+        assertEquals(0.65f, g.farCardAlpha)
+    }
+
+    @Test
+    fun ghostStackStyleRejectsInvalidValues() {
+        assertFailsWith<IllegalArgumentException> { GhostStackStyle(sideInsetPerStep = (-1).dp) }
+        assertFailsWith<IllegalArgumentException> { GhostStackStyle(offsetPerStep = (-1).dp) }
+        assertFailsWith<IllegalArgumentException> { GhostStackStyle(nearCardAlpha = 1.5f) }
+        assertFailsWith<IllegalArgumentException> { GhostStackStyle(farCardAlpha = -0.1f) }
+    }
+
+    @Test
+    fun cardShadowsDefaultsKeepBuiltInDeckShadows() {
+        val s = CardShadows()
+        assertNull(s.nearDeckCard)
+        assertNull(s.farDeckCard)
+        assertEquals(s.topOverDeck, s.topAlone)
+        assertTrue(s.topOverDeck.isNotEmpty())
+    }
+
+    @Test
+    fun cardShadowRejectsNegativeBlur() {
+        assertFailsWith<IllegalArgumentException> {
+            CardShadow(color = Color.Black, blur = (-1).dp, offsetY = 2.dp)
+        }
+    }
+
+    @Test
+    fun cardShadowAllowsNegativeSpreadAndOffset() {
+        val s = CardShadow(color = Color.Black, blur = 4.dp, offsetY = (-2).dp, spread = (-3).dp)
+        assertEquals((-3).dp, s.spread)
     }
 
     @Test

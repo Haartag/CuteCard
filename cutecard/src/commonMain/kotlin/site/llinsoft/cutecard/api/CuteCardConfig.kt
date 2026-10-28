@@ -43,6 +43,19 @@ enum class ExitAnimation {
 }
 
 /**
+ * Where the unflip (rewind) button is shown while the back face is visible.
+ *
+ * [None]       No button and no reserved space (default)
+ * [AboveCard]  Above the card, right-aligned. Space is reserved so the card never moves
+ * [CardTopEnd] Inside the card's top-right corner, rotating with the back face
+ */
+enum class UnflipButtonPosition {
+    None,
+    AboveCard,
+    CardTopEnd
+}
+
+/**
  * Controls all behavior and animation of [CuteCard].
  * Visual appearance is controlled separately via [CuteCardStyle].
  *
@@ -56,6 +69,7 @@ enum class ExitAnimation {
  * @param flipDirection Axis of the flip. See [FlipDirection].
  * @param confirmExit Animation when the card is marked as known. See [ExitAnimation].
  * @param dismissExit Animation when the card is marked as unknown. See [ExitAnimation].
+ * @param unflipButtonPosition Where the unflip button is shown. See [UnflipButtonPosition].
  */
 @Immutable
 data class CuteCardConfig(
@@ -65,5 +79,6 @@ data class CuteCardConfig(
     val exitDurationMs: Int = 300,
     val flipDirection: FlipDirection = FlipDirection.Horizontal,
     val confirmExit: ExitAnimation = ExitAnimation.SlideUp,
-    val dismissExit: ExitAnimation = ExitAnimation.SlideDown
+    val dismissExit: ExitAnimation = ExitAnimation.SlideDown,
+    val unflipButtonPosition: UnflipButtonPosition = UnflipButtonPosition.None
 )
