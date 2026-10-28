@@ -48,7 +48,7 @@ import kotlinx.coroutines.delay
  * @param onFlippedBack     Called when the user taps the back face to confirm (before exit starts).
  * @param onKnown           Called after confirm exit animation completes.
  * @param onUnknown         Called after dismiss exit animation completes.
- * @param dismissButton     Slot shown below the card on the back face; must call its onClick to trigger exit.
+ * @param dismissButton     Slot shown below the card on the back face; must call its onClick to trigger exit. Null removes it and its space.
  * @param unflipButton      Slot shown above the card, right-aligned, on the back face; must call its onClick to trigger unflip.
  */
 @Composable
@@ -67,7 +67,7 @@ internal fun CuteCardLayout(
     onFlippedBack: (() -> Unit)?,
     onKnown: () -> Unit,
     onUnknown: () -> Unit,
-    dismissButton: @Composable (onClick: () -> Unit) -> Unit,
+    dismissButton: (@Composable (onClick: () -> Unit) -> Unit)?,
     unflipButton: (@Composable (onClick: () -> Unit) -> Unit)?,
     modifier: Modifier = Modifier
 ) {
@@ -255,13 +255,15 @@ internal fun CuteCardLayout(
 
         }
 
-        Box(
-            modifier = Modifier
-                .padding(top = CuteCardTokens.DismissButtonTopPadding)
-                .alpha(if (showDismissButton) 1f else 0f)
-                .semantics { if (!showDismissButton) hideFromAccessibility() }
-        ) {
-            dismissButton { if (userInteractive) stateHolder.onDismissTap() }
+        if (dismissButton != null) {
+            Box(
+                modifier = Modifier
+                    .padding(top = CuteCardTokens.DismissButtonTopPadding)
+                    .alpha(if (showDismissButton) 1f else 0f)
+                    .semantics { if (!showDismissButton) hideFromAccessibility() }
+            ) {
+                dismissButton { if (userInteractive) stateHolder.onDismissTap() }
+            }
         }
     }
 }

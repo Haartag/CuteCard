@@ -318,6 +318,18 @@ CuteCard(
 )
 ```
 
+### Disabling the dismiss button
+
+Pass `null` to remove the dismiss button and its reserved space entirely. The card can then only be confirmed as known, so `onUnknown` is never called and can be omitted:
+
+```kotlin
+CuteCard(
+    content = content,
+    onKnown = { ... },
+    dismissButton = null
+)
+```
+
 ---
 
 ## Unflip button

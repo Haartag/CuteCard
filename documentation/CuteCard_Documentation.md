@@ -163,7 +163,7 @@ The audio button always lives on the full-info face, regardless of which mode is
 fun CuteCard(
     content: CuteCardContent,
     onKnown: () -> Unit,
-    onUnknown: () -> Unit,
+    onUnknown: () -> Unit = {},
     modifier: Modifier = Modifier,
     config: CuteCardConfig = CuteCardConfig(),
     style: CuteCardStyle = CuteCardDefaults.style(),
@@ -175,7 +175,7 @@ fun CuteCard(
     onAudioRequested: (() -> Unit)? = null,
     onFlipped: (() -> Unit)? = null,
     onFlippedBack: (() -> Unit)? = null,
-    dismissButton: @Composable (onClick: () -> Unit) -> Unit = { /* built-in text button */ },
+    dismissButton: (@Composable (onClick: () -> Unit) -> Unit)? = { /* built-in text button */ },
     unflipButton: (@Composable (onClick: () -> Unit) -> Unit)? = null
 )
 ```
@@ -184,7 +184,7 @@ fun CuteCard(
 |---|---|---|
 | `content` | `CuteCardContent` | All data for this card. Changing this resets the card to front state |
 | `onKnown` | `() -> Unit` | Called after confirm exit animation completes. Advance the deck here |
-| `onUnknown` | `() -> Unit` | Called after dismiss exit animation completes. Re-queue or advance here |
+| `onUnknown` | `() -> Unit` | Called after dismiss exit animation completes. Re-queue or advance here. Defaults to a no-op — omit it when `dismissButton = null` |
 | `modifier` | `Modifier` | Applied to the root layout |
 | `config` | `CuteCardConfig` | Behavior and animation settings |
 | `style` | `CuteCardStyle` | Visual appearance |
@@ -196,7 +196,7 @@ fun CuteCard(
 | `onAudioRequested` | `(() -> Unit)?` | Called on audio button tap. `null` hides the button entirely |
 | `onFlipped` | `(() -> Unit)?` | Called when the back face becomes interactive (flip animation done + settle lock expired). `null` = no callback |
 | `onFlippedBack` | `(() -> Unit)?` | Called when the user taps the back face to confirm (before exit animation). `null` = no callback |
-| `dismissButton` | `@Composable (onClick: () -> Unit) -> Unit` | Slot for a custom dismiss control. The `onClick` lambda **must be called** to trigger the dismiss animation. Defaults to the built-in text button. While hidden (front face), the slot is rendered invisibly so the card height stays constant |
+| `dismissButton` | `(@Composable (onClick: () -> Unit) -> Unit)?` | Slot for a custom dismiss control. The `onClick` lambda **must be called** to trigger the dismiss animation. Defaults to the built-in text button. While hidden (front face), the slot is rendered invisibly so the card height stays constant. `null` removes the button entirely — no space is reserved, and `onUnknown` is never called |
 | `unflipButton` | `(@Composable (onClick: () -> Unit) -> Unit)?` | Slot for an icon shown above the card (top-right) when the back face is visible. The `onClick` lambda **must be called** to trigger the reverse flip. While hidden (front face), the slot is rendered invisibly so the card height stays constant. `null` (default) disables the button entirely — no space is reserved |
 
 ---

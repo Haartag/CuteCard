@@ -48,7 +48,8 @@ import site.llinsoft.cutecard.internal.ui.UnflipButton
  * @param onKnown Called after the confirm exit animation completes.
  * Advance to the next card here.
  * @param onUnknown Called after the dismiss exit animation completes.
- * Re-queue the card or advance here.
+ * Re-queue the card or advance here. Defaults to a no-op, so it
+ * can be omitted when [dismissButton] is `null`.
  * @param config Behavior and animation settings. See [CuteCardConfig].
  * @param style Visual appearance. See [CuteCardStyle] and [CuteCardDefaults].
  * @param labels All user-facing strings. See [CuteCardLabels].
@@ -92,8 +93,10 @@ import site.llinsoft.cutecard.internal.ui.UnflipButton
  * @param dismissButton Composable slot for the "I don't know" control shown below the card.
  * Receives an `onClick` lambda that must be called to
  * trigger the dismiss animation. Defaults to the
- * built-in text button. Use this to supply a custom
- * icon, image, or any other composable:
+ * built-in text button. `null` removes the button
+ * entirely — no space is reserved, and the card can
+ * then only be confirmed as known. Use this to supply
+ * a custom icon, image, or any other composable:
  * ```kotlin
  *     dismissButton = { onClick ->
  *         IconButton(onClick = onClick) {
@@ -118,7 +121,7 @@ import site.llinsoft.cutecard.internal.ui.UnflipButton
 fun CuteCard(
     content: CuteCardContent,
     onKnown: () -> Unit,
-    onUnknown: () -> Unit,
+    onUnknown: () -> Unit = {},
     modifier: Modifier = Modifier,
     config: CuteCardConfig = CuteCardConfig(),
     style: CuteCardStyle = CuteCardDefaults.style(),
@@ -130,7 +133,7 @@ fun CuteCard(
     onAudioRequested: (() -> Unit)? = null,
     onFlipped: (() -> Unit)? = null,
     onFlippedBack: (() -> Unit)? = null,
-    dismissButton: @Composable (onClick: () -> Unit) -> Unit = { onClick ->
+    dismissButton: (@Composable (onClick: () -> Unit) -> Unit)? = { onClick ->
         DismissButton(onClick = onClick, style = style.dismissButtonStyle, labels = labels)
     },
     unflipButton: (@Composable (onClick: () -> Unit) -> Unit)? = null
