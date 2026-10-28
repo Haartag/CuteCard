@@ -78,6 +78,14 @@ class CuteCardApiTest {
     }
 
     @Test
+    fun wordVerticalPositionValues() {
+        assertEquals(
+            listOf(WordVerticalPosition.Raised, WordVerticalPosition.Centered),
+            WordVerticalPosition.entries
+        )
+    }
+
+    @Test
     fun configTranslationMode() {
         val c = CuteCardConfig(frontSide = CardFrontSide.Translation)
         assertEquals(CardFrontSide.Translation, c.frontSide)

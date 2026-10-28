@@ -1,8 +1,6 @@
 package site.llinsoft.cutecard.internal.ui
 
 import androidx.compose.foundation.border
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Text
@@ -33,30 +31,26 @@ internal fun CardFront(
     modifier: Modifier = Modifier
 ) {
     Box(modifier = modifier.fillMaxSize()) {
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(CuteCardTokens.CardContentPadding)
-                .semantics {
-                    contentDescription = labels.cardFrontContentDescription
-                },
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            Spacer(Modifier.weight(0.4f))
-            Text(
-                text = content.word,
-                style = style.wordTextStyle,
-                color = style.wordTextColor,
-                textAlign = TextAlign.Center,
-                maxLines = 3,
-                overflow = TextOverflow.Ellipsis,
-                autoSize = TextAutoSize.StepBased(
-                    minFontSize = style.wordAutoSizeMinFontSize,
-                    maxFontSize = style.wordTextStyle.fontSize,
-                ),
-            )
-            Spacer(Modifier.weight(0.6f))
-        }
+        WordArea(
+            style = style,
+            modifier = Modifier.semantics {
+                contentDescription = labels.cardFrontContentDescription
+            },
+            word = {
+                Text(
+                    text = content.word,
+                    style = style.wordTextStyle,
+                    color = style.wordTextColor,
+                    textAlign = TextAlign.Center,
+                    maxLines = 3,
+                    overflow = TextOverflow.Ellipsis,
+                    autoSize = TextAutoSize.StepBased(
+                        minFontSize = style.wordAutoSizeMinFontSize,
+                        maxFontSize = style.wordTextStyle.fontSize,
+                    ),
+                )
+            }
+        )
 
         if (content.sourceLanguage != null) {
             LanguagePill(

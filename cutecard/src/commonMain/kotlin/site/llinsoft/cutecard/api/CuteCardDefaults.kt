@@ -53,6 +53,13 @@ object CuteCardDefaults {
         ghostCardBackgroundColor = Color(0xFFF0F0EE),
         cardBorderColor = Color(0x1A000000),
 
+        // Card layout
+
+        contentPadding = CuteCardTokens.CardContentPadding,
+        reservedTopHeight = 0.dp,
+        reservedBottomHeight = 0.dp,
+        wordVerticalPosition = WordVerticalPosition.Raised,
+
         // Word / translation
 
         wordTextStyle = TextStyle(

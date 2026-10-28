@@ -6,6 +6,7 @@ import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.TextUnit
+import androidx.compose.ui.unit.dp
 
 /**
  * Controls the visual appearance of the audio button's two states.
@@ -101,6 +102,20 @@ data class LanguagePillStyle(
 )
 
 /**
+ * Vertical position of the word inside the word area — the space left after
+ * [CuteCardStyle.contentPadding] and the reserved top / bottom rows.
+ *
+ * [Raised]   Free space split 40 / 60 above / below the word and its details, so the
+ *            block sits slightly above centre (default)
+ * [Centered] The word itself is exactly centred; phonetics and word class hang below it
+ *            without moving it, so the word sits at the same spot on both faces
+ */
+enum class WordVerticalPosition {
+    Raised,
+    Centered
+}
+
+/**
  * Full visual appearance of [CuteCard].
  * All animation and behavior is controlled separately via [CuteCardConfig].
  *
@@ -121,6 +136,14 @@ data class LanguagePillStyle(
  * @param audioButtonStyle Full appearance of the audio button.
  * @param dismissButtonStyle Full appearance of the dismiss button.
  * @param languagePillStyle Full appearance of the language indicator pill in the card corner.
+ * @param contentPadding Space between the card edge and its content, on all sides.
+ * Also insets the audio button.
+ * @param reservedTopHeight Height of a row at the top of the word area that the word never
+ * enters. Size it to the corner icons (e.g. [UnflipButtonPosition.CardTopEnd]). Applies to
+ * both faces, so the word stays in the same place whichever face has the icons.
+ * @param reservedBottomHeight Height of a row at the bottom of the word area that the word
+ * never enters. Size it to the audio button. Applies to both faces.
+ * @param wordVerticalPosition Where the word sits in the word area. See [WordVerticalPosition].
  */
 @Immutable
 data class CuteCardStyle(
@@ -139,5 +162,9 @@ data class CuteCardStyle(
     val wordClassPillStyle: WordClassPillStyle,
     val audioButtonStyle: AudioButtonStyle,
     val dismissButtonStyle: DismissButtonStyle,
-    val languagePillStyle: LanguagePillStyle
+    val languagePillStyle: LanguagePillStyle,
+    val contentPadding: Dp = 28.dp,
+    val reservedTopHeight: Dp = 0.dp,
+    val reservedBottomHeight: Dp = 0.dp,
+    val wordVerticalPosition: WordVerticalPosition = WordVerticalPosition.Raised
 )

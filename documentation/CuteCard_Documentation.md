@@ -283,9 +283,49 @@ data class CuteCardStyle(
     val wordClassPillStyle: WordClassPillStyle,
     val audioButtonStyle: AudioButtonStyle,
     val dismissButtonStyle: DismissButtonStyle,
-    val languagePillStyle: LanguagePillStyle
+    val languagePillStyle: LanguagePillStyle,
+    val contentPadding: Dp = 28.dp,
+    val reservedTopHeight: Dp = 0.dp,
+    val reservedBottomHeight: Dp = 0.dp,
+    val wordVerticalPosition: WordVerticalPosition = WordVerticalPosition.Raised
 )
 ```
+
+#### Word placement
+
+Three settings control where the word sits. Both faces follow them, so the word lands in the same place on the front and the back.
+
+| Field | Default | Controls |
+|---|---|---|
+| `contentPadding` | `28.dp` | Space between the card edge and its content, on all sides. Also insets the audio button |
+| `reservedTopHeight` | `0.dp` | Row at the top of the word area that the word never enters — size it to the corner icons |
+| `reservedBottomHeight` | `0.dp` | Row at the bottom of the word area that the word never enters — size it to the audio button |
+| `wordVerticalPosition` | `Raised` | `Raised`: free space split 40 / 60 above / below the word, so it sits slightly above centre. `Centered`: the word is exactly centred in the word area |
+
+The word area is the card minus `contentPadding`, minus the two reserved rows. Reserved rows are measured from inside the padding. The built-in audio button is about 48dp tall and sits inside the padding, so `reservedBottomHeight = 48.dp` clears it; the corner icons sit flush with the card edge, so they need less than their own height.
+
+```
+┌────────────────────────┐
+│ EN                  ↺  │  ← reservedTopHeight
+│ ┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄ │
+│                        │
+│         hierro         │  ← word area
+│                        │
+│ ┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄ │
+│      [ ▶ Listen ]      │  ← reservedBottomHeight
+└────────────────────────┘
+```
+
+With `Centered`, phonetics and the word class hang **below** the word without moving it. The word may shrink (auto-size) so they still fit. The audio button is an overlay and never moves the word either. With equal top and bottom rows, the word sits at the same spot on both faces:
+
+```kotlin
+style = CuteCardDefaults.style().copy(
+    reservedTopHeight = 48.dp,
+    reservedBottomHeight = 48.dp,
+    wordVerticalPosition = WordVerticalPosition.Centered
+)
+```
+
 
 #### `AudioButtonStyle`
 
@@ -418,6 +458,14 @@ object CuteCardDefaults {
 enum class CardFrontSide {
     Word,         // front = word only → back = full info + audio (default)
     Translation   // front = full info + audio → back = word only
+}
+```
+
+#### `WordVerticalPosition`
+```kotlin
+enum class WordVerticalPosition {
+    Raised,       // free space split 40 / 60 above / below the word (default)
+    Centered      // word exactly centred; phonetics and word class hang below it
 }
 ```
 
@@ -888,6 +936,7 @@ When `null`, the component behaves exactly as before — no behavior change unle
     CuteCardLayout.kt      ← wires everything together
     CardFront.kt
     CardBack.kt
+    WordArea.kt            ← shared word placement for both faces
     AudioButton.kt
     DismissButton.kt       ← "I don't know" text button, below card
     UnflipButton.kt        ← built-in rewind icon button (above card or in its top-right corner)

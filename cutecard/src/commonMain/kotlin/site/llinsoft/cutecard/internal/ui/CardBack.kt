@@ -1,8 +1,6 @@
 package site.llinsoft.cutecard.internal.ui
 
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -36,57 +34,28 @@ internal fun CardBack(
     modifier: Modifier = Modifier
 ) {
     Box(modifier = modifier.fillMaxSize()) {
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(CuteCardTokens.CardContentPadding)
-                .semantics {
-                    contentDescription = labels.cardBackContentDescription
-                },
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            Spacer(Modifier.weight(0.4f))
-            Text(
-                text = content.translation,
-                style = style.wordTextStyle,
-                color = style.wordTextColor,
-                textAlign = TextAlign.Center,
-                maxLines = 3,
-                overflow = TextOverflow.Ellipsis,
-                autoSize = TextAutoSize.StepBased(
-                    minFontSize = style.wordAutoSizeMinFontSize,
-                    maxFontSize = style.wordTextStyle.fontSize,
-                ),
-            )
-
-            if (content.phonetics != null) {
+        val hasDetails = content.phonetics != null || content.wordClass != null
+        WordArea(
+            style = style,
+            modifier = Modifier.semantics {
+                contentDescription = labels.cardBackContentDescription
+            },
+            word = {
                 Text(
-                    text = content.phonetics,
-                    style = style.phoneticsTextStyle,
-                    color = style.phoneticsTextColor,
+                    text = content.translation,
+                    style = style.wordTextStyle,
+                    color = style.wordTextColor,
                     textAlign = TextAlign.Center,
-                    maxLines = 1,
+                    maxLines = 3,
                     overflow = TextOverflow.Ellipsis,
-                    modifier = Modifier.padding(
-                        top = CuteCardTokens.WordToPhoneticsSpacing
-                    )
+                    autoSize = TextAutoSize.StepBased(
+                        minFontSize = style.wordAutoSizeMinFontSize,
+                        maxFontSize = style.wordTextStyle.fontSize,
+                    ),
                 )
-            }
-
-            if (content.wordClass != null) {
-                WordClassPill(
-                    wordClass = content.wordClass,
-                    style = style,
-                    modifier = Modifier.padding(
-                        top = if (content.phonetics != null)
-                            CuteCardTokens.PhoneticsToWordClassSpacing
-                        else
-                            CuteCardTokens.WordToPhoneticsSpacing
-                    )
-                )
-            }
-            Spacer(Modifier.weight(0.6f))
-        }
+            },
+            details = if (!hasDetails) null else { { CardBackDetails(content, style) } }
+        )
 
         if (onAudioRequested != null) {
             AudioButton(
@@ -98,9 +67,9 @@ internal fun CardBack(
                     .align(Alignment.BottomCenter)
                     .fillMaxWidth()
                     .padding(
-                        start = CuteCardTokens.CardContentPadding,
-                        end = CuteCardTokens.CardContentPadding,
-                        bottom = CuteCardTokens.CardContentPadding
+                        start = style.contentPadding,
+                        end = style.contentPadding,
+                        bottom = style.contentPadding
                     )
             )
         }
@@ -121,5 +90,39 @@ internal fun CardBack(
                     .padding(style.languagePillStyle.cornerPadding)
             )
         }
+    }
+}
+
+/** Phonetics and word class shown below the translation. */
+@Composable
+private fun CardBackDetails(
+    content: CuteCardContent,
+    style: CuteCardStyle
+) {
+    if (content.phonetics != null) {
+        Text(
+            text = content.phonetics,
+            style = style.phoneticsTextStyle,
+            color = style.phoneticsTextColor,
+            textAlign = TextAlign.Center,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis,
+            modifier = Modifier.padding(
+                top = CuteCardTokens.WordToPhoneticsSpacing
+            )
+        )
+    }
+
+    if (content.wordClass != null) {
+        WordClassPill(
+            wordClass = content.wordClass,
+            style = style,
+            modifier = Modifier.padding(
+                top = if (content.phonetics != null)
+                    CuteCardTokens.PhoneticsToWordClassSpacing
+                else
+                    CuteCardTokens.WordToPhoneticsSpacing
+            )
+        )
     }
 }
